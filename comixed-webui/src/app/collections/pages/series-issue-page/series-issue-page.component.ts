@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import { Store } from '@ngrx/store';
@@ -26,7 +26,7 @@ import { setBusyState } from '@app/core/actions/busy.actions';
 import { selectComicBookSelectionIds } from '@app/comic-books/selectors/comic-book-selection.selectors';
 import { setMultipleComicBookByPublisherSeriesAndVolumeSelectionState } from '@app/comic-books/actions/comic-book-selection.actions';
 import { TitleService } from '@app/core/services/title.service';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { selectUser } from '@app/user/selectors/user.selectors';
 import { isAdmin } from '@app/user/user.functions';
 import { loadComicsByFilter } from '@app/comic-books/actions/comic-list.actions';
@@ -36,11 +36,13 @@ import {
   selectComicListState
 } from '@app/comic-books/selectors/comic-list.selectors';
 import { DisplayableComic } from '@app/comic-books/models/displayable-comic';
+import { ComicListViewComponent } from '../../../comic-books/components/comic-list-view/comic-list-view.component';
 
 @Component({
   selector: 'cx-series-issue-page',
   templateUrl: './series-issue-page.component.html',
-  styleUrl: './series-issue-page.component.scss'
+  styleUrl: './series-issue-page.component.scss',
+  imports: [ComicListViewComponent, TranslateModule]
 })
 export class SeriesIssuePageComponent implements OnInit, OnDestroy {
   paramSubscription: Subscription;
@@ -60,14 +62,14 @@ export class SeriesIssuePageComponent implements OnInit, OnDestroy {
   selectedIds: number[] = [];
   totalComics = 0;
 
-  constructor(
-    private logger: LoggerService,
-    private store: Store,
-    private activatedRoute: ActivatedRoute,
-    private translateService: TranslateService,
-    private titleService: TitleService,
-    public queryParameterService: QueryParameterService
-  ) {
+  logger = inject(LoggerService);
+  store = inject(Store);
+  activatedRoute = inject(ActivatedRoute);
+  translateService = inject(TranslateService);
+  titleService = inject(TitleService);
+  queryParameterService = inject(QueryParameterService);
+
+  constructor() {
     this.logger.trace('Subscribing to parameter updates');
     this.paramSubscription = this.activatedRoute.params.subscribe(params => {
       this.publisherName = params['publisher'];

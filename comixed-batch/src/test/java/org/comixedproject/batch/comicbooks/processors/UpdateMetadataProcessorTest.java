@@ -18,14 +18,14 @@
 
 package org.comixedproject.batch.comicbooks.processors;
 
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertSame;
+import static junit.framework.TestCase.*;
 import static org.comixedproject.service.admin.ConfigurationService.CFG_LIBRARY_NO_COMICINFO_ENTRY;
 import static org.comixedproject.service.admin.ConfigurationService.CFG_LIBRARY_NO_RECREATE_COMICS;
 import static org.comixedproject.service.admin.ConfigurationService.CREATE_EXTERNAL_METADATA_FILE;
 
 import org.comixedproject.adaptors.AdaptorException;
 import org.comixedproject.adaptors.comicbooks.ComicBookAdaptor;
+import org.comixedproject.batch.ComicCheckOutManager;
 import org.comixedproject.model.archives.ArchiveType;
 import org.comixedproject.model.comicbooks.ComicBook;
 import org.comixedproject.model.comicbooks.ComicDetail;
@@ -46,6 +46,7 @@ class UpdateMetadataProcessorTest {
   private static final ArchiveType TEST_ARCHIVE_TYPE = ArchiveType.CB7;
 
   @InjectMocks private UpdateMetadataProcessor processor;
+  @Mock private ComicCheckOutManager comicCheckOutManager;
   @Mock private ComicBookAdaptor comicBookAdaptor;
   @Mock private ConfigurationService configurationService;
   @Mock private ComicBook comicBook;
@@ -53,8 +54,48 @@ class UpdateMetadataProcessorTest {
 
   @BeforeEach
   public void setUp() {
+    Mockito.when(comicBook.isFileContentsLoaded()).thenReturn(true);
+    Mockito.when(comicBook.isPurging()).thenReturn(false);
+    Mockito.when(comicBook.isBatchMetadataUpdate()).thenReturn(false);
+    Mockito.when(comicBook.isEditDetails()).thenReturn(false);
     Mockito.when(comicBook.getComicDetail()).thenReturn(comicDetail);
+    Mockito.when(comicDetail.isMissing()).thenReturn(false);
     Mockito.when(comicDetail.getArchiveType()).thenReturn(TEST_ARCHIVE_TYPE);
+  }
+
+  @Test
+  void process_missing() {
+    Mockito.when(comicDetail.isMissing()).thenReturn(true);
+
+    assertNull(processor.process(comicBook));
+  }
+
+  @Test
+  void process_fileContentsNotLoaded() {
+    Mockito.when(comicBook.isFileContentsLoaded()).thenReturn(false);
+
+    assertNull(processor.process(comicBook));
+  }
+
+  @Test
+  void process_isPurging() {
+    Mockito.when(comicBook.isPurging()).thenReturn(true);
+
+    assertNull(processor.process(comicBook));
+  }
+
+  @Test
+  void process_batchMetadataUpdate() {
+    Mockito.when(comicBook.isBatchMetadataUpdate()).thenReturn(true);
+
+    assertNull(processor.process(comicBook));
+  }
+
+  @Test
+  void process_isEditDetails() {
+    Mockito.when(comicBook.isEditDetails()).thenReturn(true);
+
+    assertNull(processor.process(comicBook));
   }
 
   @Test

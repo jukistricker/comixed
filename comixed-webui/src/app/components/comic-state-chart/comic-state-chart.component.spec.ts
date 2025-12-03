@@ -43,12 +43,12 @@ describe('ComicStateChartComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ComicStateChartComponent],
       imports: [
         NoopAnimationsModule,
         LoggerModule.forRoot(),
         TranslateModule.forRoot(),
-        NgxChartsModule
+        NgxChartsModule,
+        ComicStateChartComponent
       ]
     }).compileComponents();
 
@@ -86,8 +86,8 @@ describe('ComicStateChartComponent', () => {
 
   describe('when the language changes', () => {
     beforeEach(() => {
-      component.libraryState = LIBRARY_STATE;
       component.comicStateData = [];
+      component.libraryState = LIBRARY_STATE;
       translateService.use('fr');
     });
 

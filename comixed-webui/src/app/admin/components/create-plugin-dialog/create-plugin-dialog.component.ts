@@ -16,26 +16,57 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import { Store } from '@ngrx/store';
 import { loadPluginLanguages } from '@app/library-plugins/actions/plugin-language.actions';
 import { Subscription } from 'rxjs';
 import { PluginLanguage } from '@app/library-plugins/models/plugin-language';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule
+} from '@angular/forms';
 import {
   selectPluginLanguageList,
   selectPluginLanguageState
 } from '@app/library-plugins/selectors/plugin-language.selectors';
 import { PluginLanguageState } from '@app/library-plugins/reducers/plugin-language.reducer';
 import { ConfirmationService } from '@tragically-slick/confirmation';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { createLibraryPlugin } from '@app/library-plugins/actions/library-plugin.actions';
+import {
+  MatCard,
+  MatCardTitle,
+  MatCardContent,
+  MatCardActions
+} from '@angular/material/card';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
 
 @Component({
   selector: 'cx-create-plugin-dialog',
   templateUrl: './create-plugin-dialog.component.html',
-  styleUrls: ['./create-plugin-dialog.component.scss']
+  styleUrls: ['./create-plugin-dialog.component.scss'],
+  imports: [
+    ReactiveFormsModule,
+    MatCard,
+    MatCardTitle,
+    MatCardContent,
+    MatFormField,
+    MatInput,
+    MatLabel,
+    MatSelect,
+    MatOption,
+    MatCardActions,
+    MatButton,
+    MatIcon,
+    TranslateModule
+  ]
 })
 export class CreatePluginDialogComponent implements OnInit, OnDestroy {
   pluginLanguageStateSubscription: Subscription;
@@ -44,13 +75,13 @@ export class CreatePluginDialogComponent implements OnInit, OnDestroy {
   pluginLanguageList: PluginLanguage[] = [];
   pluginForm: FormGroup;
 
-  constructor(
-    private logger: LoggerService,
-    private store: Store,
-    private formBuilder: FormBuilder,
-    private confirmationService: ConfirmationService,
-    private translateService: TranslateService
-  ) {
+  logger = inject(LoggerService);
+  store = inject(Store);
+  formBuilder = inject(FormBuilder);
+  confirmationService = inject(ConfirmationService);
+  translateService = inject(TranslateService);
+
+  constructor() {
     this.logger.trace('Subscribing to plugin language state updates');
     this.pluginLanguageStateSubscription = this.store
       .select(selectPluginLanguageState)

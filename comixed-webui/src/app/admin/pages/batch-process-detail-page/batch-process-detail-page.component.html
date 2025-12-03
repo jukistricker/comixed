@@ -14,10 +14,12 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let entry of detail?.parameters | keyvalue">
-        <td>{{ entry.key }}</td>
-        <td>{{ entry.value }}</td>
-      </tr>
+      @for (entry of detail?.parameters | keyvalue; track entry) {
+        <tr>
+          <td>{{ entry.key }}</td>
+          <td>{{ entry.value }}</td>
+        </tr>
+      }
     </tbody>
   </table>
 </div>
@@ -25,25 +27,30 @@
 <div class="batch-process-detail-row cx-centered-horiz">
   <div class="cx-width-90">
     <ul>
-      <li *ngIf="detail?.running">
-        {{
-          "batch-processes.text.running-now"
-            | translate: { started: detail?.startTime | date: "medium" }
-        }}
-      </li>
-
-      <li *ngIf="!detail?.running">
-        {{
-          "batch-processes.text.status" | translate: { status: detail?.status }
-        }}
-      </li>
-
-      <li *ngIf="!detail?.running">
-        {{
-          "batch-processes.text.exit-code"
-            | translate: { status: detail?.exitStatus }
-        }}
-      </li>
+      @if (detail?.running) {
+        <li>
+          {{
+            "batch-processes.text.running-now"
+              | translate: { started: detail?.startTime | date: "medium" }
+          }}
+        </li>
+      }
+      @if (!detail?.running) {
+        <li>
+          {{
+            "batch-processes.text.status"
+              | translate: { status: detail?.status }
+          }}
+        </li>
+      }
+      @if (!detail?.running) {
+        <li>
+          {{
+            "batch-processes.text.exit-code"
+              | translate: { status: detail?.exitStatus }
+          }}
+        </li>
+      }
 
       <li>
         {{
@@ -51,16 +58,18 @@
             | translate: { created: detail?.createTime | date: "medium" }
         }}
       </li>
-      <li *ngIf="!detail?.running">
-        {{
-          "batch-processes.text.duration"
-            | translate
-              : {
-                  started: detail?.startTime | date: "medium",
-                  ended: detail?.endTime | date: "medium"
-                }
-        }}
-      </li>
+      @if (!detail?.running) {
+        <li>
+          {{
+            "batch-processes.text.duration"
+              | translate
+                : {
+                    started: detail?.startTime | date: "medium",
+                    ended: detail?.endTime | date: "medium"
+                  }
+          }}
+        </li>
+      }
       <li>
         {{
           "batch-processes.text.last-updated"
@@ -71,9 +80,11 @@
   </div>
 </div>
 
-<div *ngIf="detail?.errors?.length > 0" class="cx-width-100">
-  <h3>{{ "batch-processes.text.error-header" | translate }}</h3>
-  <pre class="cx-padding-5 cx-width-100">
-  {{ detail?.errors }}
-  </pre>
-</div>
+@if (detail?.errors?.length > 0) {
+  <div class="cx-width-100">
+    <h3>{{ "batch-processes.text.error-header" | translate }}</h3>
+    <pre class="cx-padding-5 cx-width-100">
+      {{ detail?.errors }}
+    </pre>
+  </div>
+}

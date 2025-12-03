@@ -20,6 +20,7 @@ import {
   Component,
   EventEmitter,
   HostListener,
+  inject,
   Input,
   OnDestroy,
   OnInit,
@@ -27,9 +28,14 @@ import {
 } from '@angular/core';
 import { ComicBook } from '@app/comic-books/models/comic-book';
 import { Store } from '@ngrx/store';
-import { FormGroup, UntypedFormBuilder, Validators } from '@angular/forms';
+import {
+  FormGroup,
+  ReactiveFormsModule,
+  UntypedFormBuilder,
+  Validators
+} from '@angular/forms';
 import { LoggerService } from '@angular-ru/cdk/logger';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MetadataEvent } from '@app/comic-metadata/models/event/metadata-event';
 import { saveUserPreference } from '@app/user/actions/user.actions';
 import {
@@ -58,11 +64,43 @@ import { selectMetadataSourceList } from '@app/comic-metadata/selectors/metadata
 import { loadMetadataSources } from '@app/comic-metadata/actions/metadata-source-list.actions';
 import { selectSingleBookScrapingState } from '@app/comic-metadata/selectors/single-book-scraping.selectors';
 import { METADATA_RECORD_LIMITS } from '@app/comic-metadata/comic-metadata.constants';
+import { MatToolbar } from '@angular/material/toolbar';
+import { MatIconButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
+import {
+  MatError,
+  MatFormField,
+  MatHint,
+  MatLabel,
+  MatSuffix
+} from '@angular/material/form-field';
+import { MatOption, MatSelect } from '@angular/material/select';
+import { MatInput } from '@angular/material/input';
+import { CommonModule } from '@angular/common';
+import { DisplayableComic } from '@app/comic-books/models/displayable-comic';
 
 @Component({
   selector: 'cx-comic-scraping',
   templateUrl: './comic-scraping.component.html',
-  styleUrls: ['./comic-scraping.component.scss']
+  styleUrls: ['./comic-scraping.component.scss'],
+  imports: [
+    CommonModule,
+    MatToolbar,
+    MatIconButton,
+    MatTooltip,
+    MatIcon,
+    ReactiveFormsModule,
+    MatFormField,
+    MatLabel,
+    MatSelect,
+    MatOption,
+    MatInput,
+    MatSuffix,
+    MatHint,
+    MatError,
+    TranslateModule
+  ]
 })
 export class ComicScrapingComponent implements OnInit, OnDestroy {
   @Input() skipCache = false;
@@ -83,13 +121,13 @@ export class ComicScrapingComponent implements OnInit, OnDestroy {
   _preferredMetadataSource: MetadataSource | null = null;
   _selectedMetadataSource: MetadataSource | null = null;
 
-  constructor(
-    private logger: LoggerService,
-    private formBuilder: UntypedFormBuilder,
-    private store: Store<any>,
-    private confirmationService: ConfirmationService,
-    private translateService: TranslateService
-  ) {
+  logger = inject(LoggerService);
+  formBuilder = inject(UntypedFormBuilder);
+  store = inject(Store);
+  confirmationService = inject(ConfirmationService);
+  translateService = inject(TranslateService);
+
+  constructor() {
     this.comicForm = this.formBuilder.group({
       publisher: [''],
       series: ['', [Validators.required]],
@@ -117,9 +155,8 @@ export class ComicScrapingComponent implements OnInit, OnDestroy {
         if (sources.length === 1) {
           this._preferredMetadataSource = sources[0];
         } else {
-          this._preferredMetadataSource = sources.find(
-            entry => entry.preferred
-          );
+          this._preferredMetadataSource =
+            sources.find(entry => entry.preferred) || null;
         }
         this.metadataSourceList = sources.map(source => {
           return { label: source.name, value: source };
@@ -154,22 +191,22 @@ export class ComicScrapingComponent implements OnInit, OnDestroy {
     this._preferredMetadataSource = source;
   }
 
-  private _comic: ComicBook;
+  private _comic: DisplayableComic;
 
-  get comic(): ComicBook {
+  get comic(): DisplayableComic {
     return this._comic;
   }
 
-  @Input() set comic(comic: ComicBook) {
+  @Input() set comic(comic: DisplayableComic) {
     this.logger.debug('Loading comic form:', comic);
     this._comic = comic;
     this.logger.debug('Loading form fields');
-    this.comicForm.controls.referenceId.setValue(comic.metadata?.referenceId);
-    this.comicForm.controls.publisher.setValue(comic.detail.publisher);
-    this.comicForm.controls.series.setValue(comic.detail.series);
-    this.comicForm.controls.volume.setValue(comic.detail.volume);
-    this.comicForm.controls.issueNumber.setValue(comic.detail.issueNumber);
-    this.comicForm.controls.imprint.setValue(comic.detail.imprint);
+    this.comicForm.controls.referenceId.setValue(comic?.referenceId);
+    this.comicForm.controls.publisher.setValue(comic?.publisher);
+    this.comicForm.controls.series.setValue(comic?.series);
+    this.comicForm.controls.volume.setValue(comic?.volume);
+    this.comicForm.controls.issueNumber.setValue(comic?.issueNumber);
+    this.comicForm.controls.imprint.setValue(comic?.imprint);
     this.comicForm.updateValueAndValidity();
   }
 
@@ -291,9 +328,16 @@ export class ComicScrapingComponent implements OnInit, OnDestroy {
         'comic-book.save-changes.confirmation-message'
       ),
       confirm: () => {
-        const comic = this.encodeForm();
-        this.logger.debug('Saving changes to comic:', comic);
-        this.store.dispatch(updateComicBook({ comicBook: comic }));
+        this.logger.debug('Saving changes to comic:', this.comic.comicBookId);
+        this.store.dispatch(
+          updateComicBook({
+            comicBookId: this.comic.comicBookId,
+            publisher: this.comicForm.controls.publisher.value,
+            series: this.comicForm.controls.series.value,
+            volume: this.comicForm.controls.volume.value,
+            issueNumber: this.comicForm.controls.issueNumber.value
+          })
+        );
       }
     });
   }
@@ -306,7 +350,7 @@ export class ComicScrapingComponent implements OnInit, OnDestroy {
   }
 
   onScrapeFilename(): void {
-    const filename = this.comic.detail.baseFilename;
+    const filename = this.comic.baseFilename;
     this.logger.debug('Scraping the comic filename:', filename);
     this.store.dispatch(scrapeMetadataFromFilename({ filename }));
   }
@@ -372,20 +416,5 @@ export class ComicScrapingComponent implements OnInit, OnDestroy {
         autoSelectExactMatch: !this.autoSelectExactMatch
       })
     );
-  }
-
-  encodeForm(): ComicBook {
-    this.logger.debug('Encoding comic');
-    return {
-      ...this.comic,
-      detail: {
-        ...this.comic.detail,
-        comicDetailId: undefined,
-        publisher: this.comicForm.controls.publisher.value,
-        series: this.comicForm.controls.series.value,
-        volume: this.comicForm.controls.volume.value,
-        issueNumber: this.comicForm.controls.issueNumber.value
-      }
-    } as ComicBook;
   }
 }

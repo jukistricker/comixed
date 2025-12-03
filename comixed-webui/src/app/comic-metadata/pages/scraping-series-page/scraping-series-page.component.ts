@@ -16,8 +16,19 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
-import { FormGroup, UntypedFormBuilder, Validators } from '@angular/forms';
+import {
+  Component,
+  HostListener,
+  inject,
+  OnDestroy,
+  OnInit
+} from '@angular/core';
+import {
+  FormGroup,
+  UntypedFormBuilder,
+  Validators,
+  ReactiveFormsModule
+} from '@angular/forms';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import { Store } from '@ngrx/store';
 import { ActivatedRoute } from '@angular/router';
@@ -29,7 +40,7 @@ import {
 import { MetadataSource } from '@app/comic-metadata/models/metadata-source';
 import { loadMetadataSources } from '@app/comic-metadata/actions/metadata-source-list.actions';
 import { setBusyState } from '@app/core/actions/busy.actions';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { TitleService } from '@app/core/services/title.service';
 import { MetadataSourceListState } from '@app/comic-metadata/reducers/metadata-source-list.reducer';
 import { loadVolumeMetadata } from '@app/comic-metadata/actions/single-book-scraping.actions';
@@ -53,11 +64,48 @@ import { SeriesScrapingState } from '@app/comic-metadata/reducers/scrape-series.
 import { selectScrapeSeriesState } from '@app/comic-metadata/selectors/scrape-series.selectors';
 import { METADATA_RECORD_LIMITS } from '@app/comic-metadata/comic-metadata.constants';
 import { MatDialog } from '@angular/material/dialog';
+import { MatToolbar } from '@angular/material/toolbar';
+import { MatIconButton, MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { MatInput } from '@angular/material/input';
+import { VolumeMetadataTableComponent } from '../../../comic-books/components/volume-metadata-table/volume-metadata-table.component';
+import {
+  MatCard,
+  MatCardTitle,
+  MatCardSubtitle,
+  MatCardContent,
+  MatCardActions
+} from '@angular/material/card';
+import { VolumeMetadataTitlePipe } from '../../../comic-books/pipes/volume-metadata-title.pipe';
 
 @Component({
   selector: 'cx-scraping-series-page',
   templateUrl: './scraping-series-page.component.html',
-  styleUrls: ['./scraping-series-page.component.scss']
+  styleUrls: ['./scraping-series-page.component.scss'],
+  imports: [
+    MatToolbar,
+    MatIconButton,
+    MatIcon,
+    MatTooltip,
+    ReactiveFormsModule,
+    MatFormField,
+    MatLabel,
+    MatSelect,
+    MatOption,
+    MatInput,
+    VolumeMetadataTableComponent,
+    MatCard,
+    MatCardTitle,
+    MatCardSubtitle,
+    MatCardContent,
+    MatCardActions,
+    MatButton,
+    TranslateModule,
+    VolumeMetadataTitlePipe
+  ]
 })
 export class ScrapingSeriesPageComponent implements OnInit, OnDestroy {
   readonly maximumRecordsOptions = METADATA_RECORD_LIMITS;
@@ -85,16 +133,16 @@ export class ScrapingSeriesPageComponent implements OnInit, OnDestroy {
   langChangeSubscription: Subscription;
   selectedVolume: VolumeMetadata;
 
-  constructor(
-    private logger: LoggerService,
-    private store: Store<any>,
-    private activatedRoute: ActivatedRoute,
-    private formBuilder: UntypedFormBuilder,
-    private translateService: TranslateService,
-    private titleService: TitleService,
-    private confirmationService: ConfirmationService,
-    private dialog: MatDialog
-  ) {
+  logger = inject(LoggerService);
+  store = inject(Store);
+  activatedRoute = inject(ActivatedRoute);
+  formBuilder = inject(UntypedFormBuilder);
+  translateService = inject(TranslateService);
+  titleService = inject(TitleService);
+  confirmationService = inject(ConfirmationService);
+  dialog = inject(MatDialog);
+
+  constructor() {
     this.logger.trace('Loading page parameters');
     this.paramSubscription = this.activatedRoute.params.subscribe(params => {
       this.logger.debug('Route parameters:', params);

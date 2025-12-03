@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import { QueryParameterService } from '@app/core/services/query-parameter.service';
 import { ActivatedRoute } from '@angular/router';
@@ -25,7 +25,7 @@ import { Subscription } from 'rxjs';
 import { setBusyState } from '@app/core/actions/busy.actions';
 import { setMultipleComicBookByPublisherSelectionState } from '@app/comic-books/actions/comic-book-selection.actions';
 import { selectComicBookSelectionIds } from '@app/comic-books/selectors/comic-book-selection.selectors';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { TitleService } from '@app/core/services/title.service';
 import { selectUser } from '@app/user/selectors/user.selectors';
 import { isAdmin } from '@app/user/user.functions';
@@ -36,11 +36,13 @@ import {
   selectComicListState
 } from '@app/comic-books/selectors/comic-list.selectors';
 import { DisplayableComic } from '@app/comic-books/models/displayable-comic';
+import { ComicListViewComponent } from '../../../comic-books/components/comic-list-view/comic-list-view.component';
 
 @Component({
   selector: 'cx-publisher-issues-page',
   templateUrl: './publisher-issues-page.component.html',
-  styleUrl: './publisher-issues-page.component.scss'
+  styleUrl: './publisher-issues-page.component.scss',
+  imports: [ComicListViewComponent, TranslateModule]
 })
 export class PublisherIssuesPageComponent implements OnInit, OnDestroy {
   paramSubscription: Subscription;
@@ -57,15 +59,14 @@ export class PublisherIssuesPageComponent implements OnInit, OnDestroy {
   comics: DisplayableComic[] = [];
   totalComics = 0;
   selectedIds: number[];
+  queryParameterService = inject(QueryParameterService);
+  logger = inject(LoggerService);
+  store = inject(Store);
+  activatedRoute = inject(ActivatedRoute);
+  translateService = inject(TranslateService);
+  titleService = inject(TitleService);
 
-  constructor(
-    private logger: LoggerService,
-    private store: Store,
-    private activatedRoute: ActivatedRoute,
-    private translateService: TranslateService,
-    private titleService: TitleService,
-    public queryParameterService: QueryParameterService
-  ) {
+  constructor() {
     this.logger.trace('Subscribing to comic detail list state updates');
     this.comicDetailListStateSubscription = this.store
       .select(selectComicListState)

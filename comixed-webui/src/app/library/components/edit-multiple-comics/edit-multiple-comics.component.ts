@@ -16,12 +16,19 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { Component, inject, Inject, OnDestroy, OnInit } from '@angular/core';
+import {
+  MAT_DIALOG_DATA,
+  MatDialogTitle,
+  MatDialogContent,
+  MatDialogActions,
+  MatDialogClose
+} from '@angular/material/dialog';
 import {
   UntypedFormBuilder,
   UntypedFormGroup,
-  Validators
+  Validators,
+  ReactiveFormsModule
 } from '@angular/forms';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import { Subscription } from 'rxjs';
@@ -34,11 +41,35 @@ import { EditMultipleComics } from '@app/library/models/ui/edit-multiple-comics'
 import { ComicDetail } from '@app/comic-books/models/comic-detail';
 import { COMIC_TYPE_SELECTION_OPTIONS } from '@app/comic-books/comic-books.constants';
 import { ComicType } from '@app/comic-books/models/comic-type';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { MatFormField, MatLabel, MatError } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'cx-edit-multiple-comics',
   templateUrl: './edit-multiple-comics.component.html',
-  styleUrls: ['./edit-multiple-comics.component.scss']
+  styleUrls: ['./edit-multiple-comics.component.scss'],
+  imports: [
+    MatDialogTitle,
+    CdkScrollable,
+    MatDialogContent,
+    ReactiveFormsModule,
+    MatFormField,
+    MatLabel,
+    MatInput,
+    MatError,
+    MatSelect,
+    MatOption,
+    MatDialogActions,
+    MatButton,
+    MatDialogClose,
+    MatIcon,
+    TranslateModule
+  ]
 })
 export class EditMultipleComicsComponent implements OnInit, OnDestroy {
   detailsForm: UntypedFormGroup;
@@ -53,12 +84,12 @@ export class EditMultipleComicsComponent implements OnInit, OnDestroy {
     } as SelectionOption<ComicType>
   ].concat(COMIC_TYPE_SELECTION_OPTIONS);
 
-  constructor(
-    private logger: LoggerService,
-    private formBuilder: UntypedFormBuilder,
-    private store: Store<any>,
-    @Inject(MAT_DIALOG_DATA) comicBooks: ComicDetail[]
-  ) {
+  logger = inject(LoggerService);
+  formBuilder = inject(UntypedFormBuilder);
+  store = inject(Store);
+  comicBooks = inject<ComicDetail[]>(MAT_DIALOG_DATA);
+
+  constructor() {
     this.detailsForm = this.formBuilder.group({
       publisher: ['', [Validators.required, Validators.maxLength(255)]],
       series: ['', [Validators.required, Validators.maxLength(255)]],
@@ -89,7 +120,6 @@ export class EditMultipleComicsComponent implements OnInit, OnDestroy {
           })
         );
       });
-    this.comics = comicBooks;
   }
 
   private _comics: ComicDetail[] = [];

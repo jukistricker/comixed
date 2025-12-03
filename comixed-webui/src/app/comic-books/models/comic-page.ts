@@ -17,6 +17,7 @@
  */
 
 import { ComicBook } from '@app/comic-books/models/comic-book';
+import { PageType } from '@app/comic-books/models/page-type';
 
 export interface ComicPage {
   comicPageId: number;
@@ -24,6 +25,7 @@ export interface ComicPage {
   filename: string;
   hash: string;
   pageNumber: number;
+  pageType: PageType;
   width: number;
   height: number;
   deleted: boolean;

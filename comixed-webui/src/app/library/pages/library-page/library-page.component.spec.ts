@@ -82,7 +82,6 @@ import {
 } from '@app/comic-books/reducers/comic-book-selection.reducer';
 import {
   setComicBookSelectionByUnreadState,
-  setDuplicateComicBooksSelectionState,
   setMultipleComicBookByFilterSelectionState
 } from '@app/comic-books/actions/comic-book-selection.actions';
 import {
@@ -97,7 +96,6 @@ import {
 } from '@app/user/reducers/read-comic-books.reducer';
 import {
   loadComicsByFilter,
-  loadDuplicateComics,
   loadReadComics,
   loadUnreadComics
 } from '@app/comic-books/actions/comic-list.actions';
@@ -137,7 +135,7 @@ describe('LibraryPageComponent', () => {
       archiveType: ArchiveType.CBZ
     }
   ];
-  const IDS = COMIC_DETAILS.map(entry => entry.comicId);
+  const IDS = COMIC_DETAILS.map(entry => entry.comicBookId);
   const initialState = {
     [USER_FEATURE_KEY]: { ...initialUserState, user: USER },
     [LIBRARY_FEATURE_KEY]: initialLibraryState,
@@ -158,93 +156,89 @@ describe('LibraryPageComponent', () => {
   let confirmationService: ConfirmationService;
   let router: Router;
 
-  beforeEach(
-    waitForAsync(() => {
-      TestBed.configureTestingModule({
-        declarations: [
-          LibraryPageComponent,
-          ComicListViewComponent,
-          ArchiveTypePipe,
-          CoverDateFilterPipe,
-          ComicCoverUrlPipe,
-          ComicTitlePipe
-        ],
-        imports: [
-          NoopAnimationsModule,
-          RouterTestingModule.withRoutes([{ path: '**', redirectTo: '' }]),
-          LoggerModule.forRoot(),
-          TranslateModule.forRoot(),
-          MatSidenavModule,
-          MatToolbarModule,
-          MatIconModule,
-          MatTreeModule,
-          MatPaginatorModule,
-          MatFormFieldModule,
-          MatTooltipModule,
-          MatDialogModule,
-          MatMenuModule,
-          MatFormFieldModule,
-          MatSelectModule,
-          MatOptionModule,
-          MatDividerModule,
-          MatSortModule,
-          MatInputModule,
-          MatTableModule,
-          MatCheckboxModule
-        ],
-        providers: [
-          provideMockStore({ initialState }),
-          {
-            provide: ActivatedRoute,
-            useValue: {
-              data: new BehaviorSubject<{}>({}),
-              snapshot: {} as ActivatedRouteSnapshot,
-              queryParams: new BehaviorSubject<{}>({}),
-              params: new BehaviorSubject<{}>({})
-            }
-          },
-          TitleService,
-          {
-            provide: QueryParameterService,
-            useValue: {
-              pageSize$: new BehaviorSubject<number>(10),
-              pageIndex$: new BehaviorSubject<number>(0),
-              coverYear$: new BehaviorSubject<CoverDateFilter>({
-                year: null,
-                month: null
-              }),
-              archiveType$: new BehaviorSubject<ArchiveType>(null),
-              filterText$: new BehaviorSubject<string>(null),
-              comicType$: new BehaviorSubject<ComicType>(null),
-              pageCount$: new BehaviorSubject<number | null>(null),
-              sortBy$: new BehaviorSubject<ComicType>(null),
-              sortDirection$: new BehaviorSubject<ComicType>(null),
-              updateQueryParam: jasmine.createSpy(
-                'QueryParameterService.updateQueryParam()'
-              )
-            }
-          },
-          ConfirmationService
-        ]
-      }).compileComponents();
+  beforeEach(waitForAsync(() => {
+    TestBed.configureTestingModule({
+      imports: [
+        NoopAnimationsModule,
+        RouterTestingModule.withRoutes([{ path: '**', redirectTo: '' }]),
+        LoggerModule.forRoot(),
+        TranslateModule.forRoot(),
+        MatSidenavModule,
+        MatToolbarModule,
+        MatIconModule,
+        MatTreeModule,
+        MatPaginatorModule,
+        MatFormFieldModule,
+        MatTooltipModule,
+        MatDialogModule,
+        MatMenuModule,
+        MatFormFieldModule,
+        MatSelectModule,
+        MatOptionModule,
+        MatDividerModule,
+        MatSortModule,
+        MatInputModule,
+        MatTableModule,
+        MatCheckboxModule,
+        LibraryPageComponent,
+        ComicListViewComponent,
+        ArchiveTypePipe,
+        CoverDateFilterPipe,
+        ComicCoverUrlPipe,
+        ComicTitlePipe
+      ],
+      providers: [
+        provideMockStore({ initialState }),
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            data: new BehaviorSubject<{}>({}),
+            snapshot: {} as ActivatedRouteSnapshot,
+            queryParams: new BehaviorSubject<{}>({}),
+            params: new BehaviorSubject<{}>({})
+          }
+        },
+        TitleService,
+        {
+          provide: QueryParameterService,
+          useValue: {
+            pageSize$: new BehaviorSubject<number>(10),
+            pageIndex$: new BehaviorSubject<number>(0),
+            coverYear$: new BehaviorSubject<CoverDateFilter>({
+              year: null,
+              month: null
+            }),
+            archiveType$: new BehaviorSubject<ArchiveType>(null),
+            filterText$: new BehaviorSubject<string>(null),
+            comicType$: new BehaviorSubject<ComicType>(null),
+            pageCount$: new BehaviorSubject<number | null>(null),
+            sortBy$: new BehaviorSubject<ComicType>(null),
+            sortDirection$: new BehaviorSubject<ComicType>(null),
+            updateQueryParam: jasmine.createSpy(
+              'QueryParameterService.updateQueryParam()'
+            )
+          }
+        },
+        ConfirmationService
+      ]
+    }).compileComponents();
 
-      fixture = TestBed.createComponent(LibraryPageComponent);
-      component = fixture.componentInstance;
-      store = TestBed.inject(MockStore);
-      spyOn(store, 'dispatch');
-      translateService = TestBed.inject(TranslateService);
-      titleService = TestBed.inject(TitleService);
-      spyOn(titleService, 'setTitle');
-      activatedRoute = TestBed.inject(ActivatedRoute);
-      queryParameterService = TestBed.inject(
-        QueryParameterService
-      ) as jasmine.SpyObj<QueryParameterService>;
-      confirmationService = TestBed.inject(ConfirmationService);
-      router = TestBed.inject(Router);
-      spyOn(router, 'navigate');
-      fixture.detectChanges();
-    })
-  );
+    fixture = TestBed.createComponent(LibraryPageComponent);
+    component = fixture.componentInstance;
+    store = TestBed.inject(MockStore);
+    spyOn(store, 'dispatch');
+    translateService = TestBed.inject(TranslateService);
+    titleService = TestBed.inject(TitleService);
+    spyOn(titleService, 'setTitle');
+    activatedRoute = TestBed.inject(ActivatedRoute);
+    queryParameterService = TestBed.inject(
+      QueryParameterService
+    ) as jasmine.SpyObj<QueryParameterService>;
+    confirmationService = TestBed.inject(ConfirmationService);
+    router = TestBed.inject(Router);
+    spyOn(router, 'navigate');
+    fixture.detectChanges();
+  }));
 
   it('should create', () => {
     expect(component).toBeTruthy();
@@ -322,16 +316,6 @@ describe('LibraryPageComponent', () => {
         expect(component.deletedOnly).toBeTrue();
       });
     });
-
-    describe('when showing duplicate comics', () => {
-      beforeEach(() => {
-        (activatedRoute.data as BehaviorSubject<{}>).next({ duplicates: true });
-      });
-
-      it('sets the duplicate only flag', () => {
-        expect(component.duplicatesOnly).toBeTrue();
-      });
-    });
   });
 
   describe('when the language changes', () => {
@@ -380,12 +364,6 @@ describe('LibraryPageComponent', () => {
 
     it('updates the page title for deleted comics', () => {
       component.deletedOnly = true;
-      translateService.use('fr');
-      expect(titleService.setTitle).toHaveBeenCalledWith(jasmine.any(String));
-    });
-
-    it('updates the page title for duplicate comics', () => {
-      component.duplicatesOnly = true;
       translateService.use('fr');
       expect(titleService.setTitle).toHaveBeenCalledWith(jasmine.any(String));
     });
@@ -449,26 +427,6 @@ describe('LibraryPageComponent', () => {
             series: null,
             volume: null,
             pageCount: null,
-            sortBy: null,
-            sortDirection: null
-          })
-        );
-      });
-    });
-
-    describe('for duplicate comics', () => {
-      beforeEach(() => {
-        component.duplicatesOnly = true;
-        (activatedRoute.queryParams as BehaviorSubject<{}>).next({
-          foo: 'bar'
-        });
-      });
-
-      it('fires an action', () => {
-        expect(store.dispatch).toHaveBeenCalledWith(
-          loadDuplicateComics({
-            pageSize: PAGE_SIZE,
-            pageIndex: 0,
             sortBy: null,
             sortDirection: null
           })
@@ -582,21 +540,6 @@ describe('LibraryPageComponent', () => {
 
   describe('selecting all displayable comics', () => {
     const SELECTED = Math.random() > 0.5;
-
-    describe('for duplicate comic books', () => {
-      beforeEach(() => {
-        component.duplicatesOnly = true;
-        component.onSetAllComicsSelectedState(SELECTED);
-      });
-
-      it('fires an action', () => {
-        expect(store.dispatch).toHaveBeenCalledWith(
-          setDuplicateComicBooksSelectionState({
-            selected: SELECTED
-          })
-        );
-      });
-    });
 
     describe('for read comic books', () => {
       beforeEach(() => {

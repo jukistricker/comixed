@@ -1,22 +1,24 @@
 <div class="cx-fab-container-bottom-right">
-  <button
-    *ngIf="!!detail && !blockedHashes.includes(detail.hash)"
-    id="block-page-button"
-    mat-fab
-    [matTooltip]="'duplicate-pages.tooltip.block-page' | translate"
-    (click)="onBlockPage()"
-  >
-    <mat-icon>block</mat-icon>
-  </button>
-  <button
-    *ngIf="!!detail && blockedHashes.includes(detail.hash)"
-    id="unblock-page-button"
-    mat-fab
-    [matTooltip]="'duplicate-pages.tooltip.unblock-page' | translate"
-    (click)="onUnblockPage()"
-  >
-    <mat-icon>remove_circle_outline</mat-icon>
-  </button>
+  @if (!!detail && !blockedHashes.includes(detail.hash)) {
+    <button
+      id="block-page-button"
+      mat-fab
+      [matTooltip]="'duplicate-pages.tooltip.block-page' | translate"
+      (click)="onBlockPage()"
+    >
+      <mat-icon>block</mat-icon>
+    </button>
+  }
+  @if (!!detail && blockedHashes.includes(detail.hash)) {
+    <button
+      id="unblock-page-button"
+      mat-fab
+      [matTooltip]="'duplicate-pages.tooltip.unblock-page' | translate"
+      (click)="onUnblockPage()"
+    >
+      <mat-icon>remove_circle_outline</mat-icon>
+    </button>
+  }
 </div>
 
 <div class="cx-horizontal-container">
@@ -85,7 +87,7 @@
       <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
       <mat-row
         *matRowDef="let row; columns: displayedColumns"
-        [routerLink]="['/comics', row.comicId]"
+        [routerLink]="['/comics', row.comicBookId]"
       ></mat-row>
     </mat-table>
   </div>

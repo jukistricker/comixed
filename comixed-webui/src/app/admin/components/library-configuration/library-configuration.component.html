@@ -42,10 +42,12 @@
           </th>
         </thead>
         <tbody id="file-renaming-details">
-          <tr *ngFor="let option of comicVariableOptions">
-            <td>{{ option.label }}</td>
-            <td>{{ option.value | translate }}</td>
-          </tr>
+          @for (option of comicVariableOptions; track option) {
+            <tr>
+              <td>{{ option.label }}</td>
+              <td>{{ option.value | translate }}</td>
+            </tr>
+          }
         </tbody>
         <thead id="page-renaming-header">
           <th scope="col">
@@ -56,10 +58,12 @@
           </th>
         </thead>
         <tbody id="page-renaming-details">
-          <tr *ngFor="let option of pageVariableOptions">
-            <td>{{ option.label }}</td>
-            <td>{{ option.value | translate }}</td>
-          </tr>
+          @for (option of pageVariableOptions; track option) {
+            <tr>
+              <td>{{ option.label }}</td>
+              <td>{{ option.value | translate }}</td>
+            </tr>
+          }
         </tbody>
       </table>
     </div>
@@ -120,6 +124,13 @@
         formControlName="stripHtmlFromMetadata"
       >
         {{ "configuration.label.strip-html-from-metadata" | translate }}
+      </mat-checkbox>
+      <br />
+      <mat-checkbox
+        id="batch-comic-lock-checkbox"
+        formControlName="batchComicLock"
+      >
+        {{ "configuration.label.batch-comic-lock" | translate }}
       </mat-checkbox>
     </div>
   </div>

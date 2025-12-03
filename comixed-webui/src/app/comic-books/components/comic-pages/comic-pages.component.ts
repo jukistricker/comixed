@@ -20,27 +20,79 @@ import {
   AfterViewInit,
   Component,
   EventEmitter,
+  inject,
   Input,
   Output,
   ViewChild
 } from '@angular/core';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import { Store } from '@ngrx/store';
-import { MatMenuTrigger } from '@angular/material/menu';
+import {
+  MatMenu,
+  MatMenuContent,
+  MatMenuItem,
+  MatMenuTrigger
+} from '@angular/material/menu';
 import { ComicPage } from '@app/comic-books/models/comic-page';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { updatePageDeletion } from '@app/comic-books/actions/comic-book.actions';
-import { MatTableDataSource } from '@angular/material/table';
-import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
+import {
+  MatCell,
+  MatCellDef,
+  MatColumnDef,
+  MatHeaderCell,
+  MatHeaderCellDef,
+  MatHeaderRow,
+  MatHeaderRowDef,
+  MatRow,
+  MatRowDef,
+  MatTable,
+  MatTableDataSource
+} from '@angular/material/table';
+import {
+  CdkDrag,
+  CdkDragDrop,
+  CdkDropList,
+  moveItemInArray
+} from '@angular/cdk/drag-drop';
 import * as _ from 'lodash';
 import { ConfirmationService } from '@tragically-slick/confirmation';
-import { MatSort } from '@angular/material/sort';
+import { MatSort, MatSortHeader } from '@angular/material/sort';
 import { setBlockedStateForHash } from '@app/comic-pages/actions/blocked-hashes.actions';
+import { ComicPageComponent } from '../comic-page/comic-page.component';
+import { MatIcon } from '@angular/material/icon';
+import { MatLabel } from '@angular/material/form-field';
+import { ComicPageUrlPipe } from '@app/comic-books/pipes/comic-page-url.pipe';
 
 @Component({
   selector: 'cx-comic-pages',
   templateUrl: './comic-pages.component.html',
-  styleUrls: ['./comic-pages.component.scss']
+  styleUrls: ['./comic-pages.component.scss'],
+  imports: [
+    ComicPageComponent,
+    MatTable,
+    CdkDropList,
+    MatSort,
+    MatColumnDef,
+    MatHeaderCellDef,
+    MatHeaderCell,
+    MatSortHeader,
+    MatCellDef,
+    MatCell,
+    MatHeaderRowDef,
+    MatHeaderRow,
+    MatRowDef,
+    MatRow,
+    CdkDrag,
+    MatMenuTrigger,
+    MatMenu,
+    MatMenuContent,
+    MatMenuItem,
+    MatIcon,
+    MatLabel,
+    TranslateModule,
+    ComicPageUrlPipe
+  ]
 })
 export class ComicPagesComponent implements AfterViewInit {
   @ViewChild(MatMenuTrigger) contextMenu: MatMenuTrigger;
@@ -55,6 +107,7 @@ export class ComicPagesComponent implements AfterViewInit {
     'page-number',
     'thumbnail',
     'filename',
+    'page-type',
     'dimensions'
   ];
   dataSource = new MatTableDataSource<ComicPage>([]);
@@ -62,12 +115,10 @@ export class ComicPagesComponent implements AfterViewInit {
   contextMenuX = '';
   contextMenuY = '';
 
-  constructor(
-    private logger: LoggerService,
-    private store: Store<any>,
-    private confirmationService: ConfirmationService,
-    private translateService: TranslateService
-  ) {}
+  logger = inject(LoggerService);
+  store = inject(Store);
+  confirmationService = inject(ConfirmationService);
+  translateService = inject(TranslateService);
 
   get pages(): ComicPage[] {
     return this.dataSource.data;
@@ -75,7 +126,7 @@ export class ComicPagesComponent implements AfterViewInit {
 
   @Input()
   set pages(pages: ComicPage[]) {
-    this.dataSource.data = _.cloneDeep(pages).sort(
+    this.dataSource.data = _.cloneDeep(pages.filter(entry => !!entry)).sort(
       (left, right) => left.pageNumber - right.pageNumber
     );
     this.dataSource.data.forEach((entry, index) => (entry.index = index));

@@ -51,13 +51,18 @@ import {
   COMIC_LIST_FEATURE_KEY,
   initialState as initialComicListState
 } from '@app/comic-books/reducers/comic-list.reducer';
+import {
+  LIBRARY_PLUGIN_FEATURE_KEY,
+  initialState as initialLibraryPluginState
+} from '@app/library-plugins/reducers/library-plugin.reducer';
 
-describe('PublisherIssuesComponent', () => {
+describe('PublisherIssuesPageComponent', () => {
   const PUBLISHER_NAME = 'The Publisher';
   const initialState = {
     [COMIC_LIST_FEATURE_KEY]: initialComicListState,
     [COMIC_BOOK_SELECTION_FEATURE_KEY]: initialComicBookSelectionState,
-    [USER_FEATURE_KEY]: initialUserState
+    [USER_FEATURE_KEY]: initialUserState,
+    [LIBRARY_PLUGIN_FEATURE_KEY]: initialLibraryPluginState
   };
 
   let component: PublisherIssuesPageComponent;
@@ -71,7 +76,6 @@ describe('PublisherIssuesComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [PublisherIssuesPageComponent, ComicListViewComponent],
       imports: [
         NoopAnimationsModule,
         LoggerModule.forRoot(),
@@ -81,7 +85,9 @@ describe('PublisherIssuesComponent', () => {
         MatTableModule,
         MatCheckboxModule,
         MatSortModule,
-        MatFormFieldModule
+        MatFormFieldModule,
+        PublisherIssuesPageComponent,
+        ComicListViewComponent
       ],
       providers: [
         provideMockStore({ initialState }),

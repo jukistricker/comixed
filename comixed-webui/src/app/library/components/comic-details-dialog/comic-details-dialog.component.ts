@@ -16,15 +16,33 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, Inject } from '@angular/core';
-import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { Component, inject } from '@angular/core';
+import {
+  MAT_DIALOG_DATA,
+  MatDialogContent,
+  MatDialogTitle
+} from '@angular/material/dialog';
 import { ComicBook } from '@app/comic-books/models/comic-book';
+import { ComicPageComponent } from '../../../comic-books/components/comic-page/comic-page.component';
+import { DatePipe } from '@angular/common';
+import { ComicTitlePipe } from '@app/comic-books/pipes/comic-title.pipe';
+import { ComicDetailCoverUrlPipe } from '@app/comic-books/pipes/comic-detail-cover-url.pipe';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'cx-comic-details-dialog',
   templateUrl: './comic-details-dialog.component.html',
-  styleUrls: ['./comic-details-dialog.component.scss']
+  styleUrls: ['./comic-details-dialog.component.scss'],
+  imports: [
+    MatDialogTitle,
+    MatDialogContent,
+    ComicPageComponent,
+    DatePipe,
+    ComicTitlePipe,
+    ComicDetailCoverUrlPipe,
+    TranslateModule
+  ]
 })
 export class ComicDetailsDialogComponent {
-  constructor(@Inject(MAT_DIALOG_DATA) public comicBook: ComicBook) {}
+  comicBook = inject<ComicBook>(MAT_DIALOG_DATA);
 }

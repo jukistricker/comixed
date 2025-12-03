@@ -18,15 +18,16 @@
 
 import { Component, Input } from '@angular/core';
 import { MetricDetail } from '@app/admin/models/metric-detail';
+import { TranslateModule } from '@ngx-translate/core';
+import { MetricMeasurementPipe } from '../../pipes/metric-measurement.pipe';
 
 @Component({
   selector: 'cx-metric-details',
   templateUrl: './server-metric-details.component.html',
-  styleUrls: ['./server-metric-details.component.scss']
+  styleUrls: ['./server-metric-details.component.scss'],
+  imports: [TranslateModule, MetricMeasurementPipe]
 })
 export class ServerMetricDetailsComponent {
   @Input()
   metricDetail: MetricDetail = null;
-
-  constructor() {}
 }

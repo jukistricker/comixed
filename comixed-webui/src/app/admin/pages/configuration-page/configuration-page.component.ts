@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import { Store } from '@ngrx/store';
 import { Subscription } from 'rxjs';
@@ -27,28 +27,47 @@ import {
 } from '@app/admin/selectors/configuration-option-list.selectors';
 import { setBusyState } from '@app/core/actions/busy.actions';
 import { TitleService } from '@app/core/services/title.service';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { loadConfigurationOptions } from '@app/admin/actions/configuration-option-list.actions';
 import { QueryParameterService } from '@app/core/services/query-parameter.service';
+import { MatTabGroup, MatTab } from '@angular/material/tabs';
+import { ServerRuntimeComponent } from '../../components/server-runtime/server-runtime.component';
+import { ServerMetricsComponent } from '../../components/server-metrics/server-metrics.component';
+import { LibraryConfigurationComponent } from '../../components/library-configuration/library-configuration.component';
+import { MetadataSourceListComponent } from '../../components/metadata-source-list/metadata-source-list.component';
+import { FilenameScrapingRulesConfigurationComponent } from '../../components/filename-scraping-rules-configuration/filename-scraping-rules-configuration.component';
+import { LibraryPluginsConfigurationComponent } from '../../components/library-plugins-configuration/library-plugins-configuration.component';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
   selector: 'cx-configuration-page',
   templateUrl: './configuration-page.component.html',
-  styleUrls: ['./configuration-page.component.scss']
+  styleUrls: ['./configuration-page.component.scss'],
+  imports: [
+    MatTabGroup,
+    MatTab,
+    ServerRuntimeComponent,
+    ServerMetricsComponent,
+    LibraryConfigurationComponent,
+    MetadataSourceListComponent,
+    FilenameScrapingRulesConfigurationComponent,
+    LibraryPluginsConfigurationComponent,
+    AsyncPipe,
+    TranslateModule
+  ]
 })
 export class ConfigurationPageComponent implements OnInit, OnDestroy {
   configStateSubscription: Subscription;
   langChangeSubscription: Subscription;
   optionSubscription: Subscription;
   options: ConfigurationOption[] = [];
+  queryParameterService = inject(QueryParameterService);
+  logger = inject(LoggerService);
+  store = inject(Store);
+  titleService = inject(TitleService);
+  translateService = inject(TranslateService);
 
-  constructor(
-    private logger: LoggerService,
-    private store: Store<any>,
-    private titleService: TitleService,
-    private translateService: TranslateService,
-    public queryParameterService: QueryParameterService
-  ) {
+  constructor() {
     this.configStateSubscription = this.store
       .select(selectConfigurationOptionListState)
       .subscribe(state => {

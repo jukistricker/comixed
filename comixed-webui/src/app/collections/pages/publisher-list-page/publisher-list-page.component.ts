@@ -19,13 +19,27 @@
 import {
   AfterViewInit,
   Component,
+  inject,
   OnDestroy,
   OnInit,
   ViewChild
 } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { LoggerService } from '@angular-ru/cdk/logger';
-import { MatTableDataSource } from '@angular/material/table';
+import {
+  MatTableDataSource,
+  MatTable,
+  MatColumnDef,
+  MatHeaderCellDef,
+  MatHeaderCell,
+  MatCellDef,
+  MatCell,
+  MatHeaderRowDef,
+  MatHeaderRow,
+  MatRowDef,
+  MatRow,
+  MatNoDataRow
+} from '@angular/material/table';
 import { Publisher } from '@app/collections/models/publisher';
 import { Subscription } from 'rxjs';
 import { loadPublisherList } from '@app/collections/actions/publisher.actions';
@@ -35,25 +49,43 @@ import {
   selectPublisherState
 } from '@app/collections/selectors/publisher.selectors';
 import { setBusyState } from '@app/core/actions/busy.actions';
-import { MatSort, SortDirection } from '@angular/material/sort';
-import { TranslateService } from '@ngx-translate/core';
+import { MatSort, SortDirection, MatSortHeader } from '@angular/material/sort';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { TitleService } from '@app/core/services/title.service';
 import { selectUser } from '@app/user/selectors/user.selectors';
 import { getUserPreference } from '@app/user';
 import { QueryParameterService } from '@app/core/services/query-parameter.service';
-import {
-  PAGE_SIZE_DEFAULT,
-  PAGE_SIZE_OPTIONS,
-  QUERY_PARAM_FILTER_TEXT
-} from '@app/core';
+import { PAGE_SIZE_DEFAULT, PAGE_SIZE_OPTIONS } from '@app/core';
 import { PREFERENCE_PAGE_SIZE } from '@app/comic-files/comic-file.constants';
-import { ActivatedRoute } from '@angular/router';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { FilterTextFormComponent } from '../../components/filter-text-form/filter-text-form.component';
+import { MatPaginator } from '@angular/material/paginator';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
   selector: 'cx-publisher-list-page',
   templateUrl: './publisher-list-page.component.html',
-  styleUrls: ['./publisher-list-page.component.scss']
+  styleUrls: ['./publisher-list-page.component.scss'],
+  imports: [
+    FilterTextFormComponent,
+    MatPaginator,
+    MatTable,
+    MatSort,
+    MatColumnDef,
+    MatHeaderCellDef,
+    MatHeaderCell,
+    MatSortHeader,
+    MatCellDef,
+    MatCell,
+    RouterLink,
+    MatHeaderRowDef,
+    MatHeaderRow,
+    MatRowDef,
+    MatRow,
+    MatNoDataRow,
+    AsyncPipe,
+    TranslateModule
+  ]
 })
 export class PublisherListPageComponent
   implements OnInit, OnDestroy, AfterViewInit
@@ -77,14 +109,14 @@ export class PublisherListPageComponent
   sortBy = 'name';
   sortDirection: SortDirection = 'asc';
 
-  constructor(
-    private logger: LoggerService,
-    private activatedRoute: ActivatedRoute,
-    private store: Store<any>,
-    private titleService: TitleService,
-    private translateService: TranslateService,
-    public queryParameterService: QueryParameterService
-  ) {
+  logger = inject(LoggerService);
+  activatedRoute = inject(ActivatedRoute);
+  store = inject(Store);
+  titleService = inject(TitleService);
+  translateService = inject(TranslateService);
+  queryParameterService = inject(QueryParameterService);
+
+  constructor() {
     this.logger.trace('Subscribing to language change updates');
     this.langChangeSubscription = this.translateService.onLangChange.subscribe(
       () => this.loadTranslations()

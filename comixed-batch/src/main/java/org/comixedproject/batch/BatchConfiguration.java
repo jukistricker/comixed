@@ -18,13 +18,9 @@
 
 package org.comixedproject.batch;
 
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.Step;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.TaskExecutorJobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
-import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.core.step.job.DefaultJobParametersExtractor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -49,9 +45,7 @@ public class BatchConfiguration {
    */
   @Bean(name = "jobTaskExecutor")
   public TaskExecutor jobTaskExecutor() {
-    final SimpleAsyncTaskExecutor result = new SimpleAsyncTaskExecutor("CX-Jarvis");
-    result.setConcurrencyLimit(this.batchThreadPoolSize);
-    return result;
+    return this.doCreateTaskExecutor("CX-Jarvis");
   }
 
   /**
@@ -61,7 +55,14 @@ public class BatchConfiguration {
    */
   @Bean(name = "stepTaskExecutor")
   public TaskExecutor stepTaskExecutor() {
-    return new SimpleAsyncTaskExecutor("CX-Alfred");
+    return this.doCreateTaskExecutor("CX-Jarvis");
+  }
+
+  private SimpleAsyncTaskExecutor doCreateTaskExecutor(String name) {
+    final SimpleAsyncTaskExecutor result = new SimpleAsyncTaskExecutor(name);
+    result.setConcurrencyLimit(this.batchThreadPoolSize);
+    result.setVirtualThreads(true);
+    return result;
   }
 
   /**
@@ -82,25 +83,5 @@ public class BatchConfiguration {
     taskExecutorJobLauncher.setTaskExecutor(taskExecutor);
     taskExecutorJobLauncher.afterPropertiesSet();
     return taskExecutorJobLauncher;
-  }
-
-  /**
-   * Returns the step that launches the processing batch job.
-   *
-   * @param jobRepository the step factory
-   * @param processComicBooksJob the job
-   * @param jobLauncher the job launcher
-   * @return the step the step
-   */
-  @Bean(name = "processComicBooksJobStep")
-  public Step processComicBooksJobStep(
-      final JobRepository jobRepository,
-      final @Qualifier("processComicBooksJob") Job processComicBooksJob,
-      final @Qualifier("batchJobLauncher") JobLauncher jobLauncher) {
-    return new StepBuilder("processComicBooksJobStep", jobRepository)
-        .job(processComicBooksJob)
-        .parametersExtractor(new DefaultJobParametersExtractor())
-        .launcher(jobLauncher)
-        .build();
   }
 }

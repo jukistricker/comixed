@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Observable, Subscription } from 'rxjs';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import { HttpClient } from '@angular/common/http';
@@ -55,6 +55,7 @@ import { ScrapeSeriesRequest } from '@app/comic-metadata/models/net/scrape-serie
 import { ScrapeMultiBookComicRequest } from '@app/comic-metadata/models/net/scrape-multi-book-comic-request';
 import { LoadMultiBookScrapingRequest } from '@app/comic-metadata/models/net/load-multi-book-scraping-request';
 import { ScrapeStoryRequest } from '@app/comic-metadata/models/net/scrape-story-request';
+import { DisplayableComic } from '@app/comic-books/models/displayable-comic';
 
 /**
  * Interacts with the REST APIs during scraping.
@@ -65,12 +66,12 @@ import { ScrapeStoryRequest } from '@app/comic-metadata/models/net/scrape-story-
 export class ComicBookScrapingService {
   subscription: Subscription;
 
-  constructor(
-    private logger: LoggerService,
-    private http: HttpClient,
-    private store: Store<any>,
-    private webSocketService: WebSocketService
-  ) {
+  logger = inject(LoggerService);
+  http = inject(HttpClient);
+  store = inject(Store);
+  webSocketService = inject(WebSocketService);
+
+  constructor() {
     this.store.select(selectMessagingState).subscribe(state => {
       if (state.started && !this.subscription) {
         this.logger.trace('Subscribing to remote library state updates');
@@ -171,7 +172,7 @@ export class ComicBookScrapingService {
   scrapeSingleBookComic(args: {
     metadataSource: MetadataSource;
     issueId: string;
-    comicBook: ComicBook;
+    comicBook: DisplayableComic | ComicBook;
     skipCache: boolean;
   }): Observable<any> {
     this.logger.debug('Scrape comic:', args);
@@ -207,7 +208,7 @@ export class ComicBookScrapingService {
   }
 
   removeMultiBookComic(args: {
-    comicBook: ComicBook;
+    comicBook: DisplayableComic;
     pageSize: number;
   }): Observable<any> {
     this.logger.debug('Removing comic from multi-books scraping:', args);
@@ -222,7 +223,7 @@ export class ComicBookScrapingService {
   scrapeMultiBookComic(args: {
     metadataSource: MetadataSource;
     issueId: string;
-    comicBook: ComicBook;
+    comicBook: DisplayableComic;
     skipCache: boolean;
     pageSize: number;
   }): Observable<any> {

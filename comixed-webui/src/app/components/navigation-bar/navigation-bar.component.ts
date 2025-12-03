@@ -16,11 +16,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
 import { User } from '@app/user/models/user';
 import { LoggerLevel, LoggerService } from '@angular-ru/cdk/logger';
-import { Router } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
+import { Router, RouterLinkActive } from '@angular/router';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { logoutUser, saveUserPreference } from '@app/user/actions/user.actions';
 import { Store } from '@ngrx/store';
 import { isAdmin, isReader } from '@app/user/user.functions';
@@ -46,11 +46,35 @@ import { loadLatestReleaseDetails } from '@app/actions/release.actions';
 import { selectDarkThemeActive } from '@app/selectors/dark-theme.selectors';
 import { toggleDarkThemeMode } from '@app/actions/dark-theme.actions';
 import { QueryParameterService } from '@app/core/services/query-parameter.service';
+import { MatToolbar } from '@angular/material/toolbar';
+import { MatIconButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
+import { GravatarModule } from 'ngx-gravatar';
+import { MatMenuTrigger, MatMenu, MatMenuItem } from '@angular/material/menu';
+import { MatLabel } from '@angular/material/form-field';
+import { MatDivider } from '@angular/material/divider';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'cx-navigation-bar',
   templateUrl: './navigation-bar.component.html',
-  styleUrls: ['./navigation-bar.component.scss']
+  styleUrls: ['./navigation-bar.component.scss'],
+  imports: [
+    MatToolbar,
+    MatIconButton,
+    MatTooltip,
+    MatIcon,
+    GravatarModule,
+    RouterLinkActive,
+    MatMenuTrigger,
+    MatMenu,
+    MatMenuItem,
+    MatLabel,
+    MatDivider,
+    DatePipe,
+    TranslateModule
+  ]
 })
 export class NavigationBarComponent {
   @Output() toggleSidebar = new EventEmitter<boolean>();
@@ -80,14 +104,14 @@ export class NavigationBarComponent {
   latestRelease: LatestRelease;
   darkMode = false;
 
-  constructor(
-    private logger: LoggerService,
-    private router: Router,
-    private store: Store<any>,
-    private confirmationService: ConfirmationService,
-    private translateService: TranslateService,
-    private queryParameterService: QueryParameterService
-  ) {
+  logger = inject(LoggerService);
+  router = inject(Router);
+  store = inject(Store);
+  confirmationService = inject(ConfirmationService);
+  translateService = inject(TranslateService);
+  queryParameterService = inject(QueryParameterService);
+
+  constructor() {
     this.translateService.onLangChange.subscribe(language => {
       this.logger.debug('Active language changed:', language.lang);
       this.currentLanguage = language.lang;

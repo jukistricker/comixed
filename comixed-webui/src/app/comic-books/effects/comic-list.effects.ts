@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import {
   loadComicsByFilter,
@@ -25,7 +25,6 @@ import {
   loadComicsForCollection,
   loadComicsForReadingList,
   loadComicsSuccess,
-  loadDuplicateComics,
   loadReadComics,
   loadUnreadComics
 } from '../actions/comic-list.actions';
@@ -39,6 +38,10 @@ import { of } from 'rxjs';
 
 @Injectable()
 export class ComicListEffects {
+  actions$ = inject(Actions);
+  logger = inject(LoggerService);
+  displayableComicService = inject(DisplayableComicService);
+
   loadComicsByFilter$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(loadComicsByFilter),
@@ -72,7 +75,6 @@ export class ComicListEffects {
       catchError(error => this.doGeneralFailure(error))
     );
   });
-
   loadComicsById$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(loadComicsById),
@@ -91,7 +93,6 @@ export class ComicListEffects {
       catchError(error => this.doGeneralFailure(error))
     );
   });
-
   loadComicsForCollection$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(loadComicsForCollection),
@@ -117,7 +118,6 @@ export class ComicListEffects {
       catchError(error => this.doGeneralFailure(error))
     );
   });
-
   loadUnreadComics$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(loadUnreadComics),
@@ -140,7 +140,6 @@ export class ComicListEffects {
       catchError(error => this.doGeneralFailure(error))
     );
   });
-
   loadReadComics$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(loadReadComics),
@@ -163,7 +162,6 @@ export class ComicListEffects {
       catchError(error => this.doGeneralFailure(error))
     );
   });
-
   loadComicsForReadingList$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(loadComicsForReadingList),
@@ -189,37 +187,8 @@ export class ComicListEffects {
     );
   });
 
-  loadDuplicateComicsDetails$ = createEffect(() => {
-    return this.actions$.pipe(
-      ofType(loadDuplicateComics),
-      tap(action =>
-        this.logger.debug('Loading duplicate comic book details:', action)
-      ),
-      switchMap(action =>
-        this.displayableComicService
-          .loadDuplicateComics({
-            pageSize: action.pageSize,
-            pageIndex: action.pageIndex,
-            sortBy: action.sortBy,
-            sortDirection: action.sortDirection
-          })
-          .pipe(
-            tap(response => this.logger.debug('Response received:', response)),
-            map((response: LoadComicsResponse) => this.doSuccess(response)),
-            catchError(error => this.doServiceFailure(error))
-          )
-      ),
-      catchError(error => this.doGeneralFailure(error))
-    );
-  });
-
-  constructor(
-    private actions$: Actions,
-    private logger: LoggerService,
-    private displayableComicService: DisplayableComicService,
-    private alertService: AlertService,
-    private translateService: TranslateService
-  ) {}
+  alertService = inject(AlertService);
+  translateService = inject(TranslateService);
 
   private doSuccess(response: LoadComicsResponse) {
     return loadComicsSuccess({

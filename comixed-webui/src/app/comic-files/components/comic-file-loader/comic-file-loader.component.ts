@@ -16,9 +16,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
 import { LoggerService } from '@angular-ru/cdk/logger';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule
+} from '@angular/forms';
 import { User } from '@app/user/models/user';
 import { getUserPreference } from '@app/user';
 import {
@@ -29,11 +34,40 @@ import {
 } from '@app/library/library.constants';
 import { loadComicFileLists } from '@app/comic-files/actions/comic-file-list.actions';
 import { Store } from '@ngrx/store';
+import {
+  MatCard,
+  MatCardTitle,
+  MatCardContent,
+  MatCardActions
+} from '@angular/material/card';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { MatInput } from '@angular/material/input';
+import { MatButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'cx-comic-file-loader',
   templateUrl: './comic-file-loader.component.html',
-  styleUrls: ['./comic-file-loader.component.scss']
+  styleUrls: ['./comic-file-loader.component.scss'],
+  imports: [
+    ReactiveFormsModule,
+    MatCard,
+    MatCardTitle,
+    MatCardContent,
+    MatFormField,
+    MatLabel,
+    MatSelect,
+    MatOption,
+    MatInput,
+    MatCardActions,
+    MatButton,
+    MatTooltip,
+    MatIcon,
+    TranslateModule
+  ]
 })
 export class ComicFileLoaderComponent {
   @Output() closeForm = new EventEmitter<void>();
@@ -47,11 +81,11 @@ export class ComicFileLoaderComponent {
     { label: 'comic-files.label.maximum-1000-files', value: 1000 }
   ];
 
-  constructor(
-    private logger: LoggerService,
-    private formBuilder: FormBuilder,
-    private store: Store<any>
-  ) {
+  logger = inject(LoggerService);
+  formBuilder = inject(FormBuilder);
+  store = inject(Store);
+
+  constructor() {
     this.loadFilesForm = this.formBuilder.group({
       rootDirectory: ['', Validators.required],
       maximum: ['', Validators.required]

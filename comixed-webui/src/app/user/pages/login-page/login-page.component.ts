@@ -16,20 +16,27 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  inject,
+  OnDestroy,
+  OnInit
+} from '@angular/core';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import {
   AbstractControl,
   UntypedFormBuilder,
   UntypedFormGroup,
-  Validators
+  Validators,
+  ReactiveFormsModule
 } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { UserModuleState } from '@app/user';
 import { Subscription } from 'rxjs';
 import { selectUserState } from '@app/user/selectors/user.selectors';
 import { loginUser } from '@app/user/actions/user.actions';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { Router } from '@angular/router';
 import { TitleService } from '@app/core/services/title.service';
 import { setBusyState } from '@app/core/actions/busy.actions';
@@ -39,11 +46,29 @@ import {
 } from '@app/user/user.constants';
 import { selectInitialUserAccountState } from '@app/user/selectors/initial-user-account.selectors';
 import { loadInitialUserAccount } from '@app/user/actions/initial-user-account.actions';
+import { MatCard, MatCardTitle, MatCardContent } from '@angular/material/card';
+import { MatFormField, MatError, MatLabel } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
 
 @Component({
   selector: 'cx-login',
   templateUrl: './login-page.component.html',
-  styleUrls: ['./login-page.component.scss']
+  styleUrls: ['./login-page.component.scss'],
+  imports: [
+    ReactiveFormsModule,
+    MatCard,
+    MatCardTitle,
+    MatCardContent,
+    MatFormField,
+    MatInput,
+    MatError,
+    MatButton,
+    MatLabel,
+    MatIcon,
+    TranslateModule
+  ]
 })
 export class LoginPageComponent implements OnInit, OnDestroy, AfterViewInit {
   loginForm: UntypedFormGroup;
@@ -53,14 +78,14 @@ export class LoginPageComponent implements OnInit, OnDestroy, AfterViewInit {
   busy = false;
   private;
 
-  constructor(
-    private logger: LoggerService,
-    private formBuilder: UntypedFormBuilder,
-    private store: Store<UserModuleState>,
-    private titleService: TitleService,
-    private translateService: TranslateService,
-    private router: Router
-  ) {
+  logger = inject(LoggerService);
+  formBuilder = inject(UntypedFormBuilder);
+  store = inject(Store);
+  titleService = inject(TitleService);
+  translateService = inject(TranslateService);
+  router = inject(Router);
+
+  constructor() {
     this.logger.trace('Creating the login form');
     this.loginForm = this.formBuilder.group({
       email: ['', [Validators.required, Validators.email]],

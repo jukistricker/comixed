@@ -16,17 +16,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, Input, OnDestroy, OnInit } from '@angular/core';
 import { ComicBook } from '@app/comic-books/models/comic-book';
 import { ComicState } from '@app/comic-books/models/comic-state';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import {
+  ReactiveFormsModule,
   UntypedFormBuilder,
   UntypedFormGroup,
   Validators
 } from '@angular/forms';
 import { ConfirmationService } from '@tragically-slick/confirmation';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Store } from '@ngrx/store';
 import { updateComicBook } from '@app/comic-books/actions/comic-book.actions';
 import { ComicDetail } from '@app/comic-books/models/comic-detail';
@@ -39,11 +40,46 @@ import { ComicType } from '@app/comic-books/models/comic-type';
 import { COMIC_TYPE_SELECTION_OPTIONS } from '@app/comic-books/comic-books.constants';
 import { ComicMetadataSource } from '@app/comic-books/models/comic-metadata-source';
 import { Clipboard } from '@angular/cdk/clipboard';
+import { MatToolbar } from '@angular/material/toolbar';
+import { MatIconButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
+import {
+  MatFormField,
+  MatLabel,
+  MatSuffix
+} from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatOption, MatSelect } from '@angular/material/select';
+import {
+  MatDatepicker,
+  MatDatepickerInput,
+  MatDatepickerToggle
+} from '@angular/material/datepicker';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'cx-comic-detail-edit',
   templateUrl: './comic-detail-edit.component.html',
-  styleUrls: ['./comic-detail-edit.component.scss']
+  styleUrls: ['./comic-detail-edit.component.scss'],
+  imports: [
+    CommonModule,
+    MatToolbar,
+    MatIconButton,
+    MatTooltip,
+    MatIcon,
+    ReactiveFormsModule,
+    MatFormField,
+    MatLabel,
+    MatInput,
+    MatSelect,
+    MatOption,
+    MatDatepickerInput,
+    MatDatepickerToggle,
+    MatSuffix,
+    MatDatepicker,
+    TranslateModule
+  ]
 })
 export class ComicDetailEditComponent implements OnInit, OnDestroy {
   @Input() isAdmin = false;
@@ -55,14 +91,14 @@ export class ComicDetailEditComponent implements OnInit, OnDestroy {
   imprints: Imprint[];
   readonly comicTypeOptions = COMIC_TYPE_SELECTION_OPTIONS;
 
-  constructor(
-    private logger: LoggerService,
-    private formBuilder: UntypedFormBuilder,
-    private store: Store<any>,
-    private confirmationService: ConfirmationService,
-    private translateService: TranslateService,
-    private clipboard: Clipboard
-  ) {
+  logger = inject(LoggerService);
+  formBuilder = inject(UntypedFormBuilder);
+  store = inject(Store);
+  confirmationService = inject(ConfirmationService);
+  translateService = inject(TranslateService);
+  clipboard = inject(Clipboard);
+
+  constructor() {
     this.logger.trace('Building comic book details form');
     this.comicBookForm = this.formBuilder.group({
       comicType: ['', Validators.required],
@@ -136,6 +172,7 @@ export class ComicDetailEditComponent implements OnInit, OnDestroy {
     this.comicBookForm.controls.volume.setValue(comic.detail.volume);
     this.comicBookForm.controls.issueNumber.setValue(comic.detail.issueNumber);
     this.comicBookForm.controls.imprint.setValue(comic.detail.imprint);
+    this.comicBookForm.controls.sortName.setValue(comic.detail.sortName);
     this.comicBookForm.controls.title.setValue(comic.detail.title);
     if (!!comic.detail.coverDate) {
       this.comicBookForm.controls.coverDate.setValue(
@@ -189,9 +226,22 @@ export class ComicDetailEditComponent implements OnInit, OnDestroy {
         'comic-book.save-changes.confirmation-message'
       ),
       confirm: () => {
-        const comicBook = this.comicBook;
-        this.logger.debug('Saving changes to comic:', comicBook);
-        this.store.dispatch(updateComicBook({ comicBook }));
+        this.logger.debug('Saving changes to comic:', this.comicBook);
+        this.store.dispatch(
+          updateComicBook({
+            comicBookId: this.comicBook.comicBookId,
+            comicType: this.comicBookForm.controls.comicType.value,
+            publisher: this.comicBookForm.controls.publisher.value,
+            series: this.comicBookForm.controls.series.value,
+            volume: this.comicBookForm.controls.volume.value,
+            issueNumber: this.comicBookForm.controls.issueNumber.value,
+            imprint: this.comicBookForm.controls.imprint.value,
+            sortName: this.comicBookForm.controls.sortName.value,
+            title: this.comicBookForm.controls.title.value,
+            storeDate: this.comicBookForm.controls.storeDate.value?.getTime(),
+            coverDate: this.comicBookForm.controls.coverDate.value?.getTime()
+          })
+        );
       }
     });
   }

@@ -19,16 +19,29 @@
 import {
   AfterViewInit,
   Component,
+  inject,
   Input,
   OnDestroy,
   ViewChild
 } from '@angular/core';
 import { VolumeMetadata } from '@app/comic-metadata/models/volume-metadata';
-import { ComicBook } from '@app/comic-books/models/comic-book';
-import { MatTableDataSource } from '@angular/material/table';
+import {
+  MatCell,
+  MatCellDef,
+  MatColumnDef,
+  MatHeaderCell,
+  MatHeaderCellDef,
+  MatHeaderRow,
+  MatHeaderRowDef,
+  MatNoDataRow,
+  MatRow,
+  MatRowDef,
+  MatTable,
+  MatTableDataSource
+} from '@angular/material/table';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import { MatPaginator } from '@angular/material/paginator';
-import { MatSort } from '@angular/material/sort';
+import { MatSort, MatSortHeader } from '@angular/material/sort';
 import { IssueMetadata } from '@app/comic-metadata/models/issue-metadata';
 import { Store } from '@ngrx/store';
 import {
@@ -41,13 +54,32 @@ import {
   selectScrapingIssueMetadata,
   selectSingleBookScrapingState
 } from '@app/comic-metadata/selectors/single-book-scraping.selectors';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SortableListItem } from '@app/core/models/ui/sortable-list-item';
 import { BusyIcon, setBusyStateWithIcon } from '@app/core/actions/busy.actions';
 import { ConfirmationService } from '@tragically-slick/confirmation';
 import { MetadataSource } from '@app/comic-metadata/models/metadata-source';
 import { PAGE_SIZE_OPTIONS } from '@app/core';
 import { multiBookScrapeComic } from '@app/comic-metadata/actions/multi-book-scraping.actions';
+import { MatToolbar } from '@angular/material/toolbar';
+import {
+  MatFormField,
+  MatLabel,
+  MatPrefix
+} from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatIcon } from '@angular/material/icon';
+import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import {
+  MatCard,
+  MatCardActions,
+  MatCardContent
+} from '@angular/material/card';
+import { DatePipe } from '@angular/common';
+import { IssueMetadataTitlePipe } from '@app/comic-books/pipes/issue-metadata-title.pipe';
+import { VolumeMetadataTitlePipe } from '../../pipes/volume-metadata-title.pipe';
+import { DisplayableComic } from '@app/comic-books/models/displayable-comic';
 
 export const MATCHABILITY = 'matchability';
 export const EXACT_MATCH = 2;
@@ -60,7 +92,39 @@ export const NO_MATCH_TEXT = 'scraping.text.no-match';
 @Component({
   selector: 'cx-scraping-volume-selection',
   templateUrl: './comic-scraping-volume-selection.html',
-  styleUrls: ['./comic-scraping-volume-selection.scss']
+  styleUrls: ['./comic-scraping-volume-selection.scss'],
+  imports: [
+    MatToolbar,
+    MatFormField,
+    MatInput,
+    MatIcon,
+    MatPrefix,
+    MatIconButton,
+    MatTooltip,
+    MatPaginator,
+    MatTable,
+    MatSort,
+    MatColumnDef,
+    MatHeaderCellDef,
+    MatHeaderCell,
+    MatSortHeader,
+    MatCellDef,
+    MatCell,
+    MatHeaderRowDef,
+    MatHeaderRow,
+    MatRowDef,
+    MatRow,
+    MatNoDataRow,
+    MatCard,
+    MatCardContent,
+    MatCardActions,
+    MatButton,
+    MatLabel,
+    DatePipe,
+    TranslateModule,
+    IssueMetadataTitlePipe,
+    VolumeMetadataTitlePipe
+  ]
 })
 export class ComicScrapingVolumeSelectionComponent
   implements OnDestroy, AfterViewInit
@@ -70,7 +134,7 @@ export class ComicScrapingVolumeSelectionComponent
 
   readonly pageSizeOptions = PAGE_SIZE_OPTIONS;
 
-  @Input() comicBook: ComicBook = null;
+  @Input() comicBook: DisplayableComic = null;
   @Input() metadataSource: MetadataSource;
   @Input() publisherName: string;
   @Input() comicSeriesName: string;
@@ -96,12 +160,12 @@ export class ComicScrapingVolumeSelectionComponent
   autoSelectExactMatch = false;
   currentVolume: VolumeMetadata | null;
 
-  constructor(
-    private logger: LoggerService,
-    private store: Store<any>,
-    private confirmationService: ConfirmationService,
-    private translateService: TranslateService
-  ) {
+  logger = inject(LoggerService);
+  store = inject(Store);
+  confirmationService = inject(ConfirmationService);
+  translateService = inject(TranslateService);
+
+  constructor() {
     this.issueSubscription = this.store
       .select(selectScrapingIssueMetadata)
       .subscribe(issue => (this.issue = issue));
@@ -145,8 +209,8 @@ export class ComicScrapingVolumeSelectionComponent
         volume.startYear === this.comicVolume
           ? EXACT_MATCH
           : volume.name.toUpperCase() === this.comicSeriesName.toUpperCase()
-          ? NEAR_MATCH
-          : NO_MATCH;
+            ? NEAR_MATCH
+            : NO_MATCH;
       return {
         item: volume,
         sortOrder

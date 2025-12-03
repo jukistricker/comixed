@@ -27,7 +27,7 @@
             </column>
 
             <column name="adaptor_name" type="varchar(255)">
-                <constraints nullable="false" unique="true"/>
+                <constraints nullable="false"/>
             </column>
 
             <column name="preferred_source" type="boolean" defaultValue="false">
@@ -35,11 +35,19 @@
             </column>
         </createTable>
 
+        <addUniqueConstraint tableName="metadata_sources" columnNames="adaptor_name"
+                             constraintName="metadata_sources_unique_adaptor_name"/>
+
         <sql>INSERT INTO metadata_sources(metadata_source_id, adaptor_name, preferred_source)
              SELECT id, adaptor_name, preferred_source
              FROM old_metadata_sources</sql>
 
         <dropTable tableName="old_metadata_sources"/>
+
+        <sql dbms="postgresql">
+            SELECT SETVAL((SELECT PG_GET_SERIAL_SEQUENCE('"metadata_sources"', 'metadata_source_id')),
+                          (SELECT (MAX("metadata_source_id") + 1) FROM "metadata_sources"), FALSE);
+        </sql>
 
     </changeSet>
 </databaseChangeLog>

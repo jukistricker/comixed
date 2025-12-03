@@ -16,12 +16,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import { Store } from '@ngrx/store';
 import { TitleService } from '@app/core/services/title.service';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { setBusyState } from '@app/core/actions/busy.actions';
 import { selectUser } from '@app/user/selectors/user.selectors';
 import {
@@ -41,14 +41,12 @@ import { QueryParameterService } from '@app/core/services/query-parameter.servic
 import { ComicState } from '@app/comic-books/models/comic-state';
 import {
   setComicBookSelectionByUnreadState,
-  setDuplicateComicBooksSelectionState,
   setMultipleComicBookByFilterSelectionState
 } from '@app/comic-books/actions/comic-book-selection.actions';
 import { selectComicBookSelectionIds } from '@app/comic-books/selectors/comic-book-selection.selectors';
 import { selectReadComicBooksList } from '@app/user/selectors/read-comic-books.selectors';
 import {
   loadComicsByFilter,
-  loadDuplicateComics,
   loadReadComics,
   loadUnreadComics
 } from '@app/comic-books/actions/comic-list.actions';
@@ -61,11 +59,22 @@ import {
 } from '@app/comic-books/selectors/comic-list.selectors';
 import { DisplayableComic } from '@app/comic-books/models/displayable-comic';
 import { ComicListState } from '@app/comic-books/reducers/comic-list.reducer';
+import { MatFabButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
+import { ComicListViewComponent } from '../../../comic-books/components/comic-list-view/comic-list-view.component';
 
 @Component({
   selector: 'cx-library-page',
   templateUrl: './library-page.component.html',
-  styleUrls: ['./library-page.component.scss']
+  styleUrls: ['./library-page.component.scss'],
+  imports: [
+    MatFabButton,
+    MatTooltip,
+    MatIcon,
+    ComicListViewComponent,
+    TranslateModule
+  ]
 })
 export class LibraryPageComponent implements OnInit, OnDestroy {
   comicListStateSubscription: Subscription;
@@ -96,7 +105,6 @@ export class LibraryPageComponent implements OnInit, OnDestroy {
   changedOnly = false;
   deletedOnly = false;
   unprocessedOnly = false;
-  duplicatesOnly = false;
   lastReadDatesSubscription: Subscription;
   comicBooksRead: number[] = [];
   readingListsSubscription: Subscription;
@@ -120,14 +128,14 @@ export class LibraryPageComponent implements OnInit, OnDestroy {
     }
   ];
 
-  constructor(
-    private logger: LoggerService,
-    private store: Store<any>,
-    private titleService: TitleService,
-    private translateService: TranslateService,
-    private activatedRoute: ActivatedRoute,
-    private queryParameterService: QueryParameterService
-  ) {
+  logger = inject(LoggerService);
+  store = inject(Store);
+  titleService = inject(TitleService);
+  translateService = inject(TranslateService);
+  activatedRoute = inject(ActivatedRoute);
+  queryParameterService = inject(QueryParameterService);
+
+  constructor() {
     this.dataSubscription = this.activatedRoute.data.subscribe(data => {
       this.selectedOnly = !!data.selected && data.selected === true;
       this.unreadOnly = !!data.unread && data.unread === true;
@@ -135,7 +143,6 @@ export class LibraryPageComponent implements OnInit, OnDestroy {
       this.changedOnly = !!data.changed && data.changed === true;
       this.deletedOnly = !!data.deleted && data.deleted === true;
       this.unprocessedOnly = !!data.unprocessed && data.unprocessed === true;
-      this.duplicatesOnly = !!data.duplicates && data.duplicates === true;
       this.showUpdateMetadata = !this.unprocessedOnly && !this.deletedOnly;
       this.showOrganize =
         !this.unreadOnly && !this.unscrapedOnly && !this.deletedOnly;
@@ -158,9 +165,6 @@ export class LibraryPageComponent implements OnInit, OnDestroy {
       }
       if (this.unprocessedOnly) {
         this.pageContent = 'unprocessed-only';
-      }
-      if (this.duplicatesOnly) {
-        this.pageContent = 'duplicates-only';
       }
     });
     this.comicListStateSubscription = this.store
@@ -242,17 +246,6 @@ export class LibraryPageComponent implements OnInit, OnDestroy {
               })
             );
           }
-        } else if (this.duplicatesOnly) {
-          this.logger.debug('Loading duplicate comics');
-          this.pageContent = 'duplicates-only';
-          this.store.dispatch(
-            loadDuplicateComics({
-              pageSize: this.queryParameterService.pageSize$.value,
-              pageIndex: this.queryParameterService.pageIndex$.value,
-              sortBy: this.queryParameterService.sortBy$.value,
-              sortDirection: this.queryParameterService.sortDirection$.value
-            })
-          );
         } else {
           this.store.dispatch(
             loadComicsByFilter({
@@ -310,13 +303,7 @@ export class LibraryPageComponent implements OnInit, OnDestroy {
   }
 
   onSetAllComicsSelectedState(selected: boolean) {
-    if (this.duplicatesOnly) {
-      this.logger.debug(
-        'Setting all duplicate comic books selected state:',
-        selected
-      );
-      this.store.dispatch(setDuplicateComicBooksSelectionState({ selected }));
-    } else if (this.unreadOnly) {
+    if (this.unreadOnly) {
       this.logger.debug(
         'Setting all comic books selected state based on read state:',
         selected,
@@ -382,10 +369,6 @@ export class LibraryPageComponent implements OnInit, OnDestroy {
     } else if (this.unreadOnly) {
       this.titleService.setTitle(
         this.translateService.instant('library.all-comics.tab-title-unread')
-      );
-    } else if (this.duplicatesOnly) {
-      this.titleService.setTitle(
-        this.translateService.instant('library.all-comics.tab-title-duplicates')
       );
     } else {
       this.titleService.setTitle(

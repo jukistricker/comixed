@@ -16,12 +16,25 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import { Subscription } from 'rxjs';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { MatTableDataSource } from '@angular/material/table';
+import {
+  MatTableDataSource,
+  MatTable,
+  MatColumnDef,
+  MatHeaderCellDef,
+  MatHeaderCell,
+  MatCellDef,
+  MatCell,
+  MatHeaderRowDef,
+  MatHeaderRow,
+  MatRowDef,
+  MatRow,
+  MatNoDataRow
+} from '@angular/material/table';
 import { Series } from '@app/collections/models/series';
 import {
   selectPublisherDetail,
@@ -30,15 +43,36 @@ import {
 import { setBusyState } from '@app/core/actions/busy.actions';
 import { loadPublisherDetail } from '@app/collections/actions/publisher.actions';
 import { TitleService } from '@app/core/services/title.service';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { QueryParameterService } from '@app/core/services/query-parameter.service';
 import { PAGE_SIZE_DEFAULT, PAGE_SIZE_OPTIONS } from '@app/core';
+import { MatSort, MatSortHeader } from '@angular/material/sort';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
   selector: 'cx-publisher-series-page',
   templateUrl: './publisher-series-page.component.html',
-  styleUrls: ['./publisher-series-page.component.scss']
+  styleUrls: ['./publisher-series-page.component.scss'],
+  imports: [
+    MatPaginator,
+    MatTable,
+    MatSort,
+    MatColumnDef,
+    MatHeaderCellDef,
+    MatHeaderCell,
+    MatSortHeader,
+    MatCellDef,
+    MatCell,
+    MatHeaderRowDef,
+    MatHeaderRow,
+    MatRowDef,
+    MatRow,
+    RouterLink,
+    MatNoDataRow,
+    AsyncPipe,
+    TranslateModule
+  ]
 })
 export class PublisherSeriesPageComponent implements OnInit, OnDestroy {
   @ViewChild(MatPaginator) paginator: MatPaginator;
@@ -62,14 +96,14 @@ export class PublisherSeriesPageComponent implements OnInit, OnDestroy {
   pageSize = PAGE_SIZE_DEFAULT;
   name: string;
 
-  constructor(
-    private logger: LoggerService,
-    private store: Store<any>,
-    private activatedRoute: ActivatedRoute,
-    private titleService: TitleService,
-    private translateService: TranslateService,
-    public queryParameterService: QueryParameterService
-  ) {
+  logger = inject(LoggerService);
+  store = inject(Store);
+  activatedRoute = inject(ActivatedRoute);
+  titleService = inject(TitleService);
+  translateService = inject(TranslateService);
+  queryParameterService = inject(QueryParameterService);
+
+  constructor() {
     this.logger.trace('Subscribing to parameter updates');
     this.paramSubscription = this.activatedRoute.params.subscribe(params => {
       this.name = params['name'];

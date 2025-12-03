@@ -17,32 +17,51 @@
  */
 
 import { createAction, props } from '@ngrx/store';
-import { ComicFile } from '@app/comic-files/models/comic-file';
 import { ComicFileGroup } from '@app/comic-files/models/comic-file-group';
 
+export const resetComicFileList = createAction(
+  '[Comic File List] Reset the local list of comic files'
+);
+
+export const loadComicFilesFromSession = createAction('[Comic File List]');
+
 export const loadComicFileLists = createAction(
-  '[Comic File] Load comics in a file system',
+  '[Comic File List] Load comics in a file system',
   props<{ directory: string; maximum: number }>()
 );
 
 export const loadComicFileListSuccess = createAction(
-  '[Comic File] Loaded comics in a file system',
+  '[Comic File List] Loaded comics in a file system',
   props<{ groups: ComicFileGroup[] }>()
 );
 
 export const loadComicFileListFailure = createAction(
-  '[Comic File] Failed to load comic files in a file system'
+  '[Comic File List] Failed to load comic files in a file system'
 );
 
-export const resetComicFileList = createAction(
-  '[Comic File] Clears the list of comic book files'
+export const updateCurrentPath = createAction(
+  '[Comic File List] Set the current path to be shown',
+  props<{
+    path: string | null;
+  }>()
 );
 
-export const setComicFilesSelectedState = createAction(
-  '[Comic File] Set the selected state on comic files',
-  props<{ files: ComicFile[]; selected: boolean }>()
+export const toggleComicFileSelections = createAction(
+  '[Comic File List] Toggle comic file selections',
+  props<{
+    filename: string;
+    selected: boolean;
+    single: boolean;
+  }>()
 );
 
-export const clearComicFileSelections = createAction(
-  '[Comic File] Clear all selected comic files'
+export const toggleComicFileSelectionsSuccess = createAction(
+  '[Comic File List] Successfully toggled comic file selections',
+  props<{
+    groups: ComicFileGroup[];
+  }>()
+);
+
+export const toggleComicFileSelectionsFailure = createAction(
+  '[Comic File List] Failed to toggle comic file selections'
 );

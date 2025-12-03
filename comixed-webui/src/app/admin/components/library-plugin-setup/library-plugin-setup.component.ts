@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import {
   LibraryPlugin,
   LibraryPluginProperty
@@ -27,6 +27,7 @@ import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import {
   FormBuilder,
   FormGroup,
+  ReactiveFormsModule,
   UntypedFormArray,
   Validators
 } from '@angular/forms';
@@ -35,24 +36,49 @@ import {
   updateLibraryPlugin
 } from '@app/library-plugins/actions/library-plugin.actions';
 import { ConfirmationService } from '@tragically-slick/confirmation';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import {
+  MatCard,
+  MatCardActions,
+  MatCardContent,
+  MatCardTitle
+} from '@angular/material/card';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { PluginTitlePipe } from '../../../library-plugins/pipes/plugin-title.pipe';
 
 @Component({
   selector: 'cx-library-plugin-setup',
   templateUrl: './library-plugin-setup.component.html',
-  styleUrls: ['./library-plugin-setup.component.scss']
+  styleUrls: ['./library-plugin-setup.component.scss'],
+  imports: [
+    ReactiveFormsModule,
+    MatCard,
+    MatCardTitle,
+    MatCardContent,
+    MatFormField,
+    MatInput,
+    MatCardActions,
+    MatButton,
+    MatIcon,
+    MatLabel,
+    TranslateModule,
+    PluginTitlePipe
+  ]
 })
 export class LibraryPluginSetupComponent {
   pluginFormGroup: FormGroup;
 
-  constructor(
-    private logger: LoggerService,
-    private store: Store,
-    private formBuilder: FormBuilder,
-    private confirmationService: ConfirmationService,
-    private translateService: TranslateService,
-    @Inject(MAT_DIALOG_DATA) public plugin: LibraryPlugin
-  ) {
+  logger = inject(LoggerService);
+  store = inject(Store);
+  formBuilder = inject(FormBuilder);
+  confirmationService = inject(ConfirmationService);
+  translateService = inject(TranslateService);
+  plugin = inject<LibraryPlugin>(MAT_DIALOG_DATA);
+
+  constructor() {
     this.logger.trace('Setting up the plugin form group');
     this.pluginFormGroup = this.formBuilder.group({
       filename: [''],

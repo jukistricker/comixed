@@ -16,39 +16,58 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, Input } from '@angular/core';
+import { Component, inject, Input } from '@angular/core';
 import {
   UntypedFormBuilder,
   UntypedFormGroup,
-  Validators
+  Validators,
+  ReactiveFormsModule
 } from '@angular/forms';
 import { ListItem } from '@app/core/models/ui/list-item';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { Store } from '@ngrx/store';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import { ConfigurationOption } from '@app/admin/models/configuration-option';
 import { getConfigurationOption } from '@app/admin';
 import {
+  BATCH_COMIC_LOCK,
   BLOCKED_PAGES_ENABLED,
-  LIBRARY_DONT_MOVE_UNSCRAPED_COMICS,
   CREATE_EXTERNAL_METADATA_FILES,
   LIBRARY_COMIC_RENAMING_RULE,
   LIBRARY_DELETE_EMPTY_DIRECTORIES,
+  LIBRARY_DELETE_PURGED_COMIC_FILES,
+  LIBRARY_DONT_MOVE_UNSCRAPED_COMICS,
   LIBRARY_NO_RECREATE_COMICS,
   LIBRARY_PAGE_RENAMING_RULE,
   LIBRARY_ROOT_DIRECTORY,
-  SKIP_INTERNAL_METADATA_FILES,
   LIBRARY_STRIP_HTML_FROM_METADATA,
-  LIBRARY_DELETE_PURGED_COMIC_FILES
+  SKIP_INTERNAL_METADATA_FILES
 } from '@app/admin/admin.constants';
 import { saveConfigurationOptions } from '@app/admin/actions/save-configuration-options.actions';
 import { ConfirmationService } from '@tragically-slick/confirmation';
 import { purgeLibrary } from '@app/library/actions/purge-library.actions';
+import { MatFabButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
+import { MatCheckbox } from '@angular/material/checkbox';
+import { MatFormField, MatError } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
 
 @Component({
   selector: 'cx-library-configuration',
   templateUrl: './library-configuration.component.html',
-  styleUrls: ['./library-configuration.component.scss']
+  styleUrls: ['./library-configuration.component.scss'],
+  imports: [
+    MatFabButton,
+    MatTooltip,
+    MatIcon,
+    ReactiveFormsModule,
+    MatCheckbox,
+    MatFormField,
+    MatInput,
+    MatError,
+    TranslateModule
+  ]
 })
 export class LibraryConfigurationComponent {
   @Input() libraryConfigurationForm: UntypedFormGroup;
@@ -95,13 +114,13 @@ export class LibraryConfigurationComponent {
     { label: '$INDEX', value: 'configuration.text.page-renaming-rule-index' }
   ];
 
-  constructor(
-    private logger: LoggerService,
-    private formBuilder: UntypedFormBuilder,
-    private store: Store<any>,
-    private confirmationService: ConfirmationService,
-    private translateService: TranslateService
-  ) {
+  logger = inject(LoggerService);
+  formBuilder = inject(UntypedFormBuilder);
+  store = inject(Store<any>);
+  confirmationService = inject(ConfirmationService);
+  translateService = inject(TranslateService);
+
+  constructor() {
     this.libraryConfigurationForm = this.formBuilder.group({
       deletePurgedComicFilesDirectories: ['', []],
       deleteEmptyDirectories: ['', []],
@@ -109,6 +128,7 @@ export class LibraryConfigurationComponent {
       createExternalMetadataFile: ['', []],
       skipInternalMetadataFile: ['', []],
       blockedPagesEnabled: ['', []],
+      batchComicLock: ['', []],
       rootDirectory: ['', [Validators.required]],
       comicRenamingRule: ['', []],
       noRecreateComics: ['', []],
@@ -130,6 +150,9 @@ export class LibraryConfigurationComponent {
     );
     this.libraryConfigurationForm.controls.stripHtmlFromMetadata.setValue(
       getConfigurationOption(options, LIBRARY_STRIP_HTML_FROM_METADATA, '')
+    );
+    this.libraryConfigurationForm.controls.batchComicLock.setValue(
+      getConfigurationOption(options, BATCH_COMIC_LOCK, '')
     );
     this.libraryConfigurationForm.controls.deletePurgedComicFilesDirectories.setValue(
       getConfigurationOption(
@@ -175,6 +198,10 @@ export class LibraryConfigurationComponent {
     );
     this.libraryConfigurationForm.controls.blockedPagesEnabled.setValue(
       getConfigurationOption(options, BLOCKED_PAGES_ENABLED, `${false}`) ===
+        `${true}`
+    );
+    this.libraryConfigurationForm.controls.batchComicLock.setValue(
+      getConfigurationOption(options, BATCH_COMIC_LOCK, `${false}`) ===
         `${true}`
     );
     this.libraryConfigurationForm.controls.stripHtmlFromMetadata.setValue(
@@ -264,6 +291,10 @@ export class LibraryConfigurationComponent {
       {
         name: LIBRARY_STRIP_HTML_FROM_METADATA,
         value: `${this.libraryConfigurationForm.controls.stripHtmlFromMetadata.value}`
+      },
+      {
+        name: BATCH_COMIC_LOCK,
+        value: `${this.libraryConfigurationForm.controls.batchComicLock.value}`
       }
     ];
   }

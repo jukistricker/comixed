@@ -16,20 +16,23 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, Input } from '@angular/core';
+import { Component, inject, Input } from '@angular/core';
 import { MetadataUpdateProcessState } from '@app/comic-metadata/reducers/metadata-update-process.reducer';
 import { LoggerService } from '@angular-ru/cdk/logger';
+import { MatProgressBar } from '@angular/material/progress-bar';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'cx-metadata-process-status',
   templateUrl: './metadata-process-status.component.html',
-  styleUrls: ['./metadata-process-status.component.scss']
+  styleUrls: ['./metadata-process-status.component.scss'],
+  imports: [MatProgressBar, TranslateModule]
 })
 export class MetadataProcessStatusComponent {
   current = 0;
   total = 0;
 
-  constructor(private logger: LoggerService) {}
+  logger = inject(LoggerService);
 
   @Input()
   set processState(state: MetadataUpdateProcessState) {

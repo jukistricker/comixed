@@ -54,12 +54,14 @@ public class ComicPage {
   @NonNull
   private ComicBook comicBook;
 
-  @Column(name = "page_state", nullable = false, updatable = true, columnDefinition = "VARCHAR(32)")
+  @Column(name = "page_type", nullable = false, updatable = true, columnDefinition = "VARCHAR(32)")
   @Enumerated(EnumType.STRING)
+  @JsonProperty("pageType")
+  @JsonView({View.ComicListView.class})
   @Getter
   @Setter
   @NonNull
-  private ComicPageState pageState = ComicPageState.STABLE;
+  private ComicPageType pageType = ComicPageType.STORY;
 
   @Column(name = "filename", length = 1024, updatable = true, nullable = false)
   @JsonProperty("filename")
@@ -89,6 +91,7 @@ public class ComicPage {
   @JsonView({View.ComicDetailsView.class})
   @Getter
   @Setter
+  @NonNull
   private Integer width = -1;
 
   @Column(name = "height", nullable = false, updatable = true)
@@ -96,6 +99,7 @@ public class ComicPage {
   @JsonView({View.ComicDetailsView.class})
   @Getter
   @Setter
+  @NonNull
   private Integer height = -1;
 
   @Column(name = "adding_to_cache", updatable = true)
@@ -125,9 +129,9 @@ public class ComicPage {
 
   @Transient
   @JsonProperty("deleted")
-  @JsonView({View.ComicListView.class})
+  @JsonView({View.ComicDetailsView.class})
   public boolean isDeleted() {
-    return ComicPageState.DELETED.equals(this.pageState);
+    return pageType == ComicPageType.DELETED;
   }
 
   @Override
@@ -137,7 +141,7 @@ public class ComicPage {
     final ComicPage page = (ComicPage) o;
     return isBlocked() == page.isBlocked()
         && Objects.equals(getComicBook(), page.getComicBook())
-        && getPageState() == page.getPageState()
+        && getPageType() == page.getPageType()
         && Objects.equals(getFilename(), page.getFilename())
         && Objects.equals(getHash(), page.getHash())
         && Objects.equals(getPageNumber(), page.getPageNumber())
@@ -151,7 +155,7 @@ public class ComicPage {
     return Objects.hash(
         getComicPageId(),
         getComicBook(),
-        getPageState(),
+        getPageType(),
         getFilename(),
         getHash(),
         getPageNumber(),

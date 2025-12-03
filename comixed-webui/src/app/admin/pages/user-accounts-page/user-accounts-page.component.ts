@@ -19,12 +19,13 @@
 import {
   AfterViewInit,
   Component,
+  inject,
   OnDestroy,
   OnInit,
   ViewChild
 } from '@angular/core';
 import { LoggerService } from '@angular-ru/cdk/logger';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { TitleService } from '@app/core/services/title.service';
 import { Store } from '@ngrx/store';
@@ -34,9 +35,21 @@ import {
   selectManageUsersState
 } from '@app/user/selectors/manage-users.selectors';
 import { setBusyState } from '@app/core/actions/busy.actions';
-import { MatTableDataSource } from '@angular/material/table';
+import {
+  MatTableDataSource,
+  MatTable,
+  MatColumnDef,
+  MatHeaderCellDef,
+  MatHeaderCell,
+  MatCellDef,
+  MatCell,
+  MatHeaderRowDef,
+  MatHeaderRow,
+  MatRowDef,
+  MatRow
+} from '@angular/material/table';
 import { User } from '@app/user/models/user';
-import { MatSort } from '@angular/material/sort';
+import { MatSort, MatSortHeader } from '@angular/material/sort';
 import {
   deleteUserAccount,
   loadUserAccountList,
@@ -48,7 +61,8 @@ import {
   AbstractControl,
   FormBuilder,
   FormGroup,
-  Validators
+  Validators,
+  ReactiveFormsModule
 } from '@angular/forms';
 import {
   MAX_PASSWORD_LENGTH,
@@ -60,11 +74,53 @@ import {
   passwordVerifyValidator
 } from '@app/user/user.functions';
 import { ConfirmationService } from '@tragically-slick/confirmation';
+import { MatFabButton, MatButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
+import {
+  MatCard,
+  MatCardContent,
+  MatCardActions
+} from '@angular/material/card';
+import { MatFormField, MatError, MatLabel } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatCheckbox } from '@angular/material/checkbox';
+import { AsyncPipe, DatePipe } from '@angular/common';
 
 @Component({
   selector: 'cx-user-accounts-page',
   templateUrl: './user-accounts-page.component.html',
-  styleUrl: './user-accounts-page.component.scss'
+  styleUrl: './user-accounts-page.component.scss',
+  imports: [
+    MatFabButton,
+    MatTooltip,
+    MatIcon,
+    ReactiveFormsModule,
+    MatCard,
+    MatCardContent,
+    MatFormField,
+    MatInput,
+    MatError,
+    MatCheckbox,
+    MatCardActions,
+    MatButton,
+    MatLabel,
+    MatTable,
+    MatSort,
+    MatColumnDef,
+    MatHeaderCellDef,
+    MatHeaderCell,
+    MatSortHeader,
+    MatCellDef,
+    MatCell,
+    MatHeaderRowDef,
+    MatHeaderRow,
+    MatRowDef,
+    MatRow,
+    AsyncPipe,
+    DatePipe,
+    TranslateModule
+  ]
 })
 export class UserAccountsPageComponent
   implements OnInit, OnDestroy, AfterViewInit
@@ -86,16 +142,26 @@ export class UserAccountsPageComponent
     'first-login-date',
     'last-login-date'
   ];
+  queryParameterService = inject(QueryParameterService);
+  logger = inject(LoggerService);
+  store = inject(Store);
+  translateService = inject(TranslateService);
+  titleService = inject(TitleService);
+  formBuilder = inject(FormBuilder);
+  confirmationService = inject(ConfirmationService);
 
-  constructor(
-    private logger: LoggerService,
-    private store: Store,
-    private translateService: TranslateService,
-    private titleService: TitleService,
-    private formBuilder: FormBuilder,
-    private confirmationService: ConfirmationService,
-    public queryParameterService: QueryParameterService
-  ) {
+  constructor() {
+    this.logger.trace('Creating the user form');
+    this.editUserForm = this.formBuilder.group(
+      {
+        id: [],
+        email: ['', [Validators.email, Validators.required]],
+        admin: [''],
+        password: [''],
+        passwordVerify: ['']
+      },
+      { validators: passwordVerifyValidator }
+    );
     this.logger.trace('Subscribing to language change updates');
     this.langChangeSubscription = this.translateService.onLangChange.subscribe(
       () => this.loadTranslations()
@@ -114,17 +180,6 @@ export class UserAccountsPageComponent
     this.userSubscription = this.store
       .select(selectManageUsersCurrent)
       .subscribe(user => (this.user = user));
-    this.logger.trace('Creating the user form');
-    this.editUserForm = this.formBuilder.group(
-      {
-        id: [],
-        email: ['', [Validators.email, Validators.required]],
-        admin: [''],
-        password: [''],
-        passwordVerify: ['']
-      },
-      { validators: passwordVerifyValidator }
-    );
   }
 
   get users(): User[] {

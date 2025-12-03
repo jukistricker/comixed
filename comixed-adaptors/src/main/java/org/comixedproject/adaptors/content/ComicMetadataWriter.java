@@ -20,6 +20,7 @@ package org.comixedproject.adaptors.content;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.stream.Collectors;
@@ -27,6 +28,8 @@ import lombok.extern.log4j.Log4j2;
 import org.comixedproject.model.comicbooks.*;
 import org.comixedproject.model.metadata.ComicInfo;
 import org.comixedproject.model.metadata.ComicInfoMetadataSource;
+import org.comixedproject.model.metadata.PageInfo;
+import org.comixedproject.model.metadata.PageType;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;
@@ -37,6 +40,8 @@ import org.springframework.util.StringUtils;
 @Log4j2
 public class ComicMetadataWriter implements InitializingBean {
   @Autowired MappingJackson2XmlHttpMessageConverter xmlConverter;
+
+  private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
   @Override
   public void afterPropertiesSet() throws Exception {
@@ -156,8 +161,25 @@ public class ComicMetadataWriter implements InitializingBean {
       log.debug("Adding metadata source details");
       comicInfo.setMetadata(
           new ComicInfoMetadataSource(
-              metadata.getMetadataSource().getAdaptorName(), metadata.getReferenceId()));
+              metadata.getMetadataSource().getAdaptorName(),
+              metadata.getReferenceId(),
+              this.dateFormat.format(metadata.getLastScrapedDate())));
     }
+    comicBook
+        .getPages()
+        .forEach(
+            page -> {
+              final PageInfo pageInfo = new PageInfo();
+              pageInfo.setFilename(page.getFilename());
+              pageInfo.setPageNumber(page.getPageNumber());
+              pageInfo.setImageType(PageType.getFor(page.getPageType()));
+              if (StringUtils.hasLength(page.getHash())) {
+                pageInfo.setImageHash(page.getHash());
+                pageInfo.setImageWidth(page.getWidth());
+                pageInfo.setImageHeight(page.getHeight());
+              }
+              comicInfo.getPages().add(pageInfo);
+            });
     try {
       log.trace("Generating ComicInfo.xml data");
       return this.xmlConverter.getObjectMapper().writeValueAsBytes(comicInfo);

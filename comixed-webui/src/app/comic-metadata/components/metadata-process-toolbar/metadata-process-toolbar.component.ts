@@ -16,11 +16,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, Input, OnDestroy } from '@angular/core';
+import { Component, inject, Input, OnDestroy } from '@angular/core';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import { Store } from '@ngrx/store';
 import { ConfirmationService } from '@tragically-slick/confirmation';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { startMetadataUpdateProcess } from '@app/comic-metadata/actions/single-book-scraping.actions';
 import { saveUserPreference } from '@app/user/actions/user.actions';
 import { SKIP_CACHE_PREFERENCE } from '@app/library/library.constants';
@@ -28,23 +28,28 @@ import { Subscription } from 'rxjs';
 import { selectUser } from '@app/user/selectors/user.selectors';
 import { getUserPreference } from '@app/user';
 import { filter } from 'rxjs/operators';
+import { MatToolbar } from '@angular/material/toolbar';
+import { MatIconButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
 
 @Component({
   selector: 'cx-metadata-process-toolbar',
   templateUrl: './metadata-process-toolbar.component.html',
-  styleUrls: ['./metadata-process-toolbar.component.scss']
+  styleUrls: ['./metadata-process-toolbar.component.scss'],
+  imports: [MatToolbar, MatIconButton, MatTooltip, MatIcon, TranslateModule]
 })
 export class MetadataProcessToolbarComponent implements OnDestroy {
   @Input() selectedIds: number[] = [];
   userSubscription: Subscription;
   skipCache = false;
 
-  constructor(
-    private logger: LoggerService,
-    private store: Store<any>,
-    private confirmationService: ConfirmationService,
-    private translateService: TranslateService
-  ) {
+  logger = inject(LoggerService);
+  store = inject(Store);
+  confirmationService = inject(ConfirmationService);
+  translateService = inject(TranslateService);
+
+  constructor() {
     this.logger.trace('Subscribing to user updates');
     this.userSubscription = this.store
       .select(selectUser)

@@ -51,6 +51,7 @@ public class ComicStateMachineConfiguration
   @Autowired private MarkComicAsMissingAction markComicAsMissingAction;
   @Autowired private MarkComicAsFoundGuard markComicAsFoundGuard;
   @Autowired private MarkComicAsFoundAction markComicAsFoundAction;
+  @Autowired private UndeleteComicAction undeleteComicAction;
 
   @Override
   public void configure(final StateMachineStateConfigurer<ComicState, ComicEvent> states)
@@ -66,7 +67,19 @@ public class ComicStateMachineConfiguration
   public void configure(final StateMachineTransitionConfigurer<ComicState, ComicEvent> transitions)
       throws Exception {
     transitions
+        // a comic book was discovered
+        .withExternal()
+        .source(ComicState.CREATED)
+        .target(ComicState.DISCOVERED)
+        .event(ComicEvent.comicDiscovered)
+        // a discovered comic book was imported
+        .and()
+        .withExternal()
+        .source(ComicState.DISCOVERED)
+        .target(ComicState.UNPROCESSED)
+        .event(ComicEvent.imported)
         // created
+        .and()
         .withExternal()
         .source(ComicState.CREATED)
         .target(ComicState.UNPROCESSED)
@@ -103,6 +116,22 @@ public class ComicStateMachineConfiguration
         .target(ComicState.STABLE)
         .event(ComicEvent.fileContentsLoaded)
         .action(fileContentsLoadedAction)
+        // the page hashes were loaded
+        .and()
+        .withExternal()
+        .source(ComicState.STABLE)
+        .target(ComicState.STABLE)
+        .event(ComicEvent.pagesHashesLoaded)
+        .and()
+        .withExternal()
+        .source(ComicState.CHANGED)
+        .target(ComicState.CHANGED)
+        .event(ComicEvent.pagesHashesLoaded)
+        .and()
+        .withExternal()
+        .source(ComicState.DELETED)
+        .target(ComicState.DELETED)
+        .event(ComicEvent.pagesHashesLoaded)
         // the details are going to be edited
         .and()
         .withExternal()
@@ -247,6 +276,7 @@ public class ComicStateMachineConfiguration
         .source(ComicState.DELETED)
         .target(ComicState.CHANGED)
         .event(ComicEvent.undeleteComic)
+        .action(undeleteComicAction)
         // the comic record was actually deleted
         .and()
         .withExternal()

@@ -16,16 +16,21 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import { ComicPage } from '@app/comic-books/models/comic-page';
 import { PageContextMenuEvent } from '@app/comic-books/models/event/page-context-menu-event';
+import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { TranslateModule } from '@ngx-translate/core';
 
 /** Displays a page from a comic. Provides events for when the page is clicked. */
 @Component({
   selector: 'cx-comic-page',
   templateUrl: './comic-page.component.html',
-  styleUrls: ['./comic-page.component.scss']
+  styleUrls: ['./comic-page.component.scss'],
+  imports: [MatCardModule, MatIconModule, MatTooltipModule, TranslateModule]
 })
 export class ComicPageComponent {
   @Input() page: ComicPage;
@@ -35,7 +40,7 @@ export class ComicPageComponent {
 
   @Output() showContextMenu = new EventEmitter<PageContextMenuEvent>();
 
-  constructor(private logger: LoggerService) {}
+  logger = inject(LoggerService);
 
   onContextMenu($event: MouseEvent): void {
     $event.preventDefault();

@@ -23,12 +23,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
 import java.io.File;
-import java.util.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import lombok.*;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
 import org.comixedproject.model.archives.ArchiveType;
@@ -314,6 +313,21 @@ public class ComicDetail implements PublicationDetail {
   @Setter
   private Date addedDate = new Date();
 
+  @Column(name = "last_modified_date", updatable = true, nullable = false)
+  @CreatedDate
+  @JsonProperty("lastModifiedDate")
+  @JsonFormat(shape = JsonFormat.Shape.NUMBER_INT)
+  @JsonView({
+    View.ComicListView.class,
+    View.DuplicatePageDetail.class,
+    View.ReadingListDetail.class,
+    View.DeletedPageList.class
+  })
+  @Temporal(TemporalType.TIMESTAMP)
+  @Getter
+  @Setter
+  private Date lastModifiedDate = new Date();
+
   @ElementCollection
   @CollectionTable(name = "read_comic_books", joinColumns = @JoinColumn(name = "comic_detail_id"))
   @Column(name = "comixed_user_id")
@@ -326,7 +340,7 @@ public class ComicDetail implements PublicationDetail {
    *
    * @return the comic book id
    */
-  @JsonProperty("comicId")
+  @JsonProperty("comicBookId")
   @JsonView({
     View.ComicListView.class,
     View.LastReadList.class,
@@ -374,6 +388,10 @@ public class ComicDetail implements PublicationDetail {
       }
     }
     this.issueNumber = issueNumber;
+  }
+
+  public boolean isMissing() {
+    return this.missing || !this.getFile().exists();
   }
 
   @Override

@@ -37,17 +37,19 @@
   }}
 </h2>
 
-<h3 *ngIf="dataSource.data.length > 0">
-  {{
-    "collections.series-detail.page-title-percentage"
-      | translate
-        : {
-            percentage: percentageComplete | number: "1.0-2",
-            inLibrary: inLibrary,
-            totalIssues: totalIssues
-          }
-  }}
-</h3>
+@if (dataSource.data.length > 0) {
+  <h3>
+    {{
+      "collections.series-detail.page-title-percentage"
+        | translate
+          : {
+              percentage: percentageComplete | number: "1.0-2",
+              inLibrary: inLibrary,
+              totalIssues: totalIssues
+            }
+    }}
+  </h3>
+}
 
 <mat-paginator
   showFirstLastButtons="true"
@@ -129,15 +131,16 @@
       {{ "collections.series.label.in-library" | translate }}
     </mat-header-cell>
     <mat-cell *matCellDef="let entry">
-      <mat-icon
-        *ngIf="entry.found"
-        [matTooltip]="
-          'collections.series-detail.text.found-in-library'
-            | translate: { exists: true }
-        "
-      >
-        check
-      </mat-icon>
+      @if (entry.found) {
+        <mat-icon
+          [matTooltip]="
+            'collections.series-detail.text.found-in-library'
+              | translate: { exists: true }
+          "
+        >
+          check
+        </mat-icon>
+      }
     </mat-cell>
   </ng-container>
 

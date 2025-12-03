@@ -19,9 +19,7 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { TEXT_NO, TEXT_YES } from '@app/core';
 
-@Pipe({
-  name: 'yesNo'
-})
+@Pipe({ name: 'yesNo' })
 export class YesNoPipe implements PipeTransform {
   transform(value: boolean): string {
     return value === true ? TEXT_YES : TEXT_NO;

@@ -18,14 +18,16 @@
       </mat-panel-title>
     </mat-expansion-panel-header>
     <div class="comic-story-cards cx-width-100">
-      <div *ngFor="let credit of credits" class="comic-story-card">
-        <cx-comic-detail-card
-          [comic]="comic.detail"
-          [title]="credit.value"
-          [subtitle]="credit.type"
-          imageUrl="/assets/img/credit.png"
-        ></cx-comic-detail-card>
-      </div>
+      @for (credit of credits; track credit) {
+        <div class="comic-story-card">
+          <cx-comic-detail-card
+            [comic]="comic.detail"
+            [title]="credit.value"
+            [subtitle]="credit.type"
+            imageUrl="/assets/img/credit.png"
+          ></cx-comic-detail-card>
+        </div>
+      }
     </div>
   </mat-expansion-panel>
   <mat-expansion-panel [disabled]="characters.length === 0">
@@ -38,19 +40,21 @@
       </mat-panel-title>
     </mat-expansion-panel-header>
     <div class="comic-story-cards cx-width-100">
-      <div *ngFor="let character of characters" class="comic-story-card">
-        <cx-comic-detail-card
-          [comic]="comic.detail"
-          [title]="character.value"
-          [routerLink]="[
-            '/library',
-            'collections',
-            'characters',
-            character.value
-          ]"
-          imageUrl="/assets/img/character.png"
-        ></cx-comic-detail-card>
-      </div>
+      @for (character of characters; track character) {
+        <div class="comic-story-card">
+          <cx-comic-detail-card
+            [comic]="comic.detail"
+            [title]="character.value"
+            [routerLink]="[
+              '/library',
+              'collections',
+              'characters',
+              character.value
+            ]"
+            imageUrl="/assets/img/character.png"
+          ></cx-comic-detail-card>
+        </div>
+      }
     </div>
   </mat-expansion-panel>
   <mat-expansion-panel [disabled]="teams.length === 0">
@@ -60,14 +64,16 @@
       </mat-panel-title>
     </mat-expansion-panel-header>
     <div class="comic-story-cards cx-width-100">
-      <div *ngFor="let team of teams" class="comic-story-card">
-        <cx-comic-detail-card
-          [comic]="comic.detail"
-          [title]="team.value"
-          [routerLink]="['/library', 'collections', 'teams', team.value]"
-          imageUrl="/assets/img/team.png"
-        ></cx-comic-detail-card>
-      </div>
+      @for (team of teams; track team) {
+        <div class="comic-story-card">
+          <cx-comic-detail-card
+            [comic]="comic.detail"
+            [title]="team.value"
+            [routerLink]="['/library', 'collections', 'teams', team.value]"
+            imageUrl="/assets/img/team.png"
+          ></cx-comic-detail-card>
+        </div>
+      }
     </div>
   </mat-expansion-panel>
   <mat-expansion-panel [disabled]="locations.length === 0">
@@ -79,19 +85,21 @@
       </mat-panel-title>
     </mat-expansion-panel-header>
     <div class="comic-story-cards cx-width-100">
-      <div *ngFor="let location of locations" class="comic-story-card">
-        <cx-comic-detail-card
-          [comic]="comic.detail"
-          [title]="location.value"
-          [routerLink]="[
-            '/library',
-            'collections',
-            'locations',
-            location.value
-          ]"
-          imageUrl="/assets/img/location.png"
-        ></cx-comic-detail-card>
-      </div>
+      @for (location of locations; track location) {
+        <div class="comic-story-card">
+          <cx-comic-detail-card
+            [comic]="comic.detail"
+            [title]="location.value"
+            [routerLink]="[
+              '/library',
+              'collections',
+              'locations',
+              location.value
+            ]"
+            imageUrl="/assets/img/location.png"
+          ></cx-comic-detail-card>
+        </div>
+      }
     </div>
   </mat-expansion-panel>
   <mat-expansion-panel [disabled]="stories.length === 0">
@@ -101,14 +109,16 @@
       </mat-panel-title>
     </mat-expansion-panel-header>
     <div class="comic-story-cards cx-width-100">
-      <div *ngFor="let story of stories" class="comic-story-card">
-        <cx-comic-detail-card
-          [comic]="comic.detail"
-          [title]="story.value"
-          [routerLink]="['/library', 'collections', 'stories', story.value]"
-          imageUrl="/assets/img/story.png"
-        ></cx-comic-detail-card>
-      </div>
+      @for (story of stories; track story) {
+        <div class="comic-story-card">
+          <cx-comic-detail-card
+            [comic]="comic.detail"
+            [title]="story.value"
+            [routerLink]="['/library', 'collections', 'stories', story.value]"
+            imageUrl="/assets/img/story.png"
+          ></cx-comic-detail-card>
+        </div>
+      }
     </div>
   </mat-expansion-panel>
 </mat-accordion>

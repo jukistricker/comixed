@@ -16,12 +16,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { AfterViewInit, Component, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, inject, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import { Store } from '@ngrx/store';
 import { TitleService } from '@app/core/services/title.service';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import {
   selectDuplicatePageCount,
   selectDuplicatePageList,
@@ -34,7 +34,19 @@ import {
   loadDuplicatePageList
 } from '@app/library/actions/duplicate-page-list.actions';
 import { DuplicatePage } from '@app/library/models/duplicate-page';
-import { MatTableDataSource } from '@angular/material/table';
+import {
+  MatTableDataSource,
+  MatTable,
+  MatColumnDef,
+  MatHeaderCellDef,
+  MatHeaderCell,
+  MatCellDef,
+  MatCell,
+  MatHeaderRowDef,
+  MatHeaderRow,
+  MatRowDef,
+  MatRow
+} from '@angular/material/table';
 import { SelectableListItem } from '@app/core/models/ui/selectable-list-item';
 import { MessagingSubscription, WebSocketService } from '@app/messaging';
 import {
@@ -55,7 +67,7 @@ import {
   setBlockedStateForHash,
   setBlockedStateForSelectedHashes
 } from '@app/comic-pages/actions/blocked-hashes.actions';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DuplicatePageUpdate } from '@app/library/models/net/duplicate-page-update';
 import {
   addAllHashesToSelection,
@@ -68,11 +80,55 @@ import {
   selectHashSelectionList,
   selectHashSelectionState
 } from '@app/comic-pages/selectors/hash-selection.selectors';
+import { MatFabButton, MatIconButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
+import {
+  MatCard,
+  MatCardTitle,
+  MatCardSubtitle,
+  MatCardContent
+} from '@angular/material/card';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatSort, MatSortHeader } from '@angular/material/sort';
+import { MatCheckbox } from '@angular/material/checkbox';
+import { AsyncPipe } from '@angular/common';
+import { YesNoPipe } from '../../../core/pipes/yes-no.pipe';
+import { PageHashUrlPipe } from '../../../comic-books/pipes/page-hash-url.pipe';
 
 @Component({
   selector: 'cx-duplicate-page-list-page',
   templateUrl: './duplicate-page-list-page.component.html',
-  styleUrls: ['./duplicate-page-list-page.component.scss']
+  styleUrls: ['./duplicate-page-list-page.component.scss'],
+  imports: [
+    MatFabButton,
+    MatTooltip,
+    MatIcon,
+    MatCard,
+    MatCardTitle,
+    MatCardSubtitle,
+    MatCardContent,
+    MatPaginator,
+    MatTable,
+    MatSort,
+    MatColumnDef,
+    MatHeaderCellDef,
+    MatHeaderCell,
+    MatCheckbox,
+    MatCellDef,
+    MatCell,
+    MatSortHeader,
+    MatIconButton,
+    MatHeaderRowDef,
+    MatHeaderRow,
+    MatRowDef,
+    MatRow,
+    RouterLink,
+    AsyncPipe,
+    YesNoPipe,
+    PageHashUrlPipe,
+    TranslateModule
+  ]
 })
 export class DuplicatePageListPageComponent
   implements OnDestroy, AfterViewInit
@@ -108,16 +164,16 @@ export class DuplicatePageListPageComponent
   ];
   protected readonly PAGE_SIZE_OPTIONS = PAGE_SIZE_OPTIONS;
 
-  constructor(
-    private logger: LoggerService,
-    private activatedRoute: ActivatedRoute,
-    private store: Store<any>,
-    private titleService: TitleService,
-    private translateService: TranslateService,
-    private confirmationService: ConfirmationService,
-    private webSocketService: WebSocketService,
-    public queryParameterService: QueryParameterService
-  ) {
+  logger = inject(LoggerService);
+  activatedRoute = inject(ActivatedRoute);
+  store = inject(Store);
+  titleService = inject(TitleService);
+  translateService = inject(TranslateService);
+  confirmationService = inject(ConfirmationService);
+  webSocketService = inject(WebSocketService);
+  queryParameterService = inject(QueryParameterService);
+
+  constructor() {
     this.queryParamsSubscription = this.activatedRoute.queryParams.subscribe(
       params =>
         this.store.dispatch(

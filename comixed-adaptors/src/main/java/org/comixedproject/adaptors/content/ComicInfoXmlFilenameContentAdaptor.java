@@ -18,12 +18,15 @@
 
 package org.comixedproject.adaptors.content;
 
+import static java.util.Calendar.*;
 import static org.apache.commons.lang3.StringUtils.trim;
 import static org.apache.commons.lang3.StringUtils.truncate;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
@@ -32,7 +35,9 @@ import org.comixedproject.model.comicbooks.ComicBook;
 import org.comixedproject.model.comicbooks.ComicDetail;
 import org.comixedproject.model.comicbooks.ComicTag;
 import org.comixedproject.model.comicbooks.ComicTagType;
+import org.comixedproject.model.comicpages.ComicPage;
 import org.comixedproject.model.metadata.ComicInfo;
+import org.comixedproject.model.metadata.PageInfo;
 import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;
 import org.springframework.util.StringUtils;
 
@@ -46,6 +51,7 @@ import org.springframework.util.StringUtils;
 public class ComicInfoXmlFilenameContentAdaptor implements FilenameContentAdaptor {
   @Getter private ArchiveEntryType archiveEntryType = ArchiveEntryType.FILE;
 
+  private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
   private MappingJackson2XmlHttpMessageConverter xmlConverter;
 
   public ComicInfoXmlFilenameContentAdaptor() {
@@ -92,6 +98,10 @@ public class ComicInfoXmlFilenameContentAdaptor implements FilenameContentAdapto
         log.debug("Loading comic metadata source details");
         comicBook.setMetadataSourceName(comicInfo.getMetadata().getName());
         comicBook.setMetadataReferenceId(trim(comicInfo.getMetadata().getReferenceId()));
+        if (StringUtils.hasLength(comicInfo.getMetadata().getLastScrapedDate())) {
+          comicBook.setLastScrapedDate(
+              this.dateFormat.parse(comicInfo.getMetadata().getLastScrapedDate()));
+        }
       }
       final ComicDetail detail = comicBook.getComicDetail();
       detail.setWebAddress(comicInfo.getWeb());
@@ -135,7 +145,33 @@ public class ComicInfoXmlFilenameContentAdaptor implements FilenameContentAdapto
       this.commandSeparatedList(comicInfo.getCoverArtist())
           .forEach(
               name -> detail.getTags().add(new ComicTag(detail, ComicTagType.COVER, trim(name))));
-    } catch (IOException error) {
+      log.debug("Loading page metadata");
+      for (int index = 0; index < comicInfo.getPages().size(); index++) {
+        final PageInfo pageInfo = comicInfo.getPages().get(index);
+        // only extract data if we can match the filename to the entry
+        if (Objects.nonNull(pageInfo) && StringUtils.hasLength(pageInfo.getFilename())) {
+          final Optional<ComicPage> optionalPage =
+              comicBook.getPages().stream()
+                  .filter(
+                      comicPage ->
+                          Objects.nonNull(comicPage)
+                              && comicPage.getFilename().equals(pageInfo.getFilename()))
+                  .findFirst();
+          if (optionalPage.isPresent()) {
+            final ComicPage page = optionalPage.get();
+            page.setPageNumber(pageInfo.getPageNumber());
+            if (Objects.nonNull(pageInfo.getImageType())) {
+              page.setPageType(pageInfo.getImageType().getComicPageType());
+            }
+            page.setWidth(pageInfo.getImageWidth());
+            page.setHeight(pageInfo.getImageHeight());
+            page.setHash(pageInfo.getImageHash());
+          } else {
+            log.warn("No comic page found for comic page: " + pageInfo.getPageNumber());
+          }
+        }
+      }
+    } catch (IOException | ParseException error) {
       throw new ContentAdaptorException("Failed to load ComicInfo.xml", error);
     }
   }

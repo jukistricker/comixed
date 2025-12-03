@@ -19,6 +19,7 @@
 package org.comixedproject.batch.comicbooks.processors;
 
 import java.io.File;
+import java.util.Date;
 import java.util.Objects;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FileUtils;
@@ -26,6 +27,7 @@ import org.comixedproject.adaptors.comicbooks.ComicBookAdaptor;
 import org.comixedproject.adaptors.content.ContentAdaptor;
 import org.comixedproject.adaptors.content.ContentAdaptorRegistry;
 import org.comixedproject.adaptors.content.ContentAdaptorRules;
+import org.comixedproject.batch.ComicCheckOutManager;
 import org.comixedproject.metadata.MetadataAdaptorProvider;
 import org.comixedproject.metadata.adaptors.MetadataAdaptor;
 import org.comixedproject.model.comicbooks.ComicBook;
@@ -52,9 +54,14 @@ public class LoadFileContentsProcessor implements ItemProcessor<ComicBook, Comic
   @Autowired private ContentAdaptorRegistry contentAdaptorRegistry;
   @Autowired private MetadataService metadataService;
   @Autowired private MetadataSourceService metadataSourceService;
+  @Autowired private ComicCheckOutManager comicCheckOutManager;
 
   @Override
   public ComicBook process(final ComicBook comicBook) {
+    if (comicBook.getComicDetail().isMissing()) {
+      log.debug("Comic file missing, skipping: id={}", comicBook.getComicBookId());
+      return null;
+    }
     if (comicBook.isFileContentsLoaded()) {
       log.debug("Comic book contents already loaded: id={}", comicBook.getComicBookId());
       return comicBook;
@@ -62,6 +69,7 @@ public class LoadFileContentsProcessor implements ItemProcessor<ComicBook, Comic
     final ContentAdaptorRules rules = new ContentAdaptorRules();
     log.debug("Loading comicBook file contents: id={} rules={}", comicBook.getComicBookId(), rules);
     try {
+      this.comicCheckOutManager.checkOut(comicBook.getComicBookId());
       this.comicBookAdaptor.load(comicBook, rules);
       log.trace("Sorting comicBook pages");
       comicBook.getPages().sort((o1, o2) -> o1.getFilename().compareTo(o2.getFilename()));
@@ -91,15 +99,22 @@ public class LoadFileContentsProcessor implements ItemProcessor<ComicBook, Comic
           final MetadataSource source =
               this.metadataSourceService.getByAdaptorName(provider.getName());
           final String referenceId = adaptor.getReferenceId(metadataWebAddress);
+          Date lastScrapedDate = comicBook.getLastScrapedDate();
+          if (Objects.isNull(lastScrapedDate)) {
+            // if no last scraped date is available, then use the last modified date instead.
+            lastScrapedDate = comicBook.getLastModifiedOn();
+          }
           log.debug(
               "Setting metadata source: source={} reference id={}",
               source.getAdaptorName(),
               referenceId);
           if (Objects.isNull(comicBook.getMetadata())) {
-            comicBook.setMetadata(new ComicMetadataSource(comicBook, source, referenceId));
+            comicBook.setMetadata(
+                new ComicMetadataSource(comicBook, source, referenceId, lastScrapedDate));
           } else {
             comicBook.getMetadata().setMetadataSource(source);
             comicBook.getMetadata().setReferenceId(referenceId);
+            comicBook.getMetadata().setLastScrapedDate(lastScrapedDate);
           }
         }
       }
@@ -108,6 +123,8 @@ public class LoadFileContentsProcessor implements ItemProcessor<ComicBook, Comic
     } catch (Throwable error) {
       log.error("Error loading comic file content", error);
       return comicBook;
+    } finally {
+      this.comicCheckOutManager.checkIn(comicBook.getComicBookId());
     }
   }
 }

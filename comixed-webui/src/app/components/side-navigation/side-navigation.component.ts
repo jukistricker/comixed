@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, Input, OnDestroy } from '@angular/core';
+import { Component, inject, Input, OnDestroy } from '@angular/core';
 import { User } from '@app/user/models/user';
 import { isAdmin } from '@app/user/user.functions';
 import { LoggerService } from '@angular-ru/cdk/logger';
@@ -32,11 +32,30 @@ import { BLOCKED_PAGES_ENABLED } from '@app/admin/admin.constants';
 import { getFeatureEnabled } from '@app/admin/actions/feature-enabled.actions';
 import { hasFeature, isFeatureEnabled } from '@app/admin';
 import { selectReadComicBooksList } from '@app/user/selectors/read-comic-books.selectors';
+import { selectComicBookSelectionState } from '@app/comic-books/selectors/comic-book-selection.selectors';
+import { MatButton } from '@angular/material/button';
+import { RouterLink, RouterLinkActive } from '@angular/router';
+import { MatIcon } from '@angular/material/icon';
+import { MatLabel } from '@angular/material/form-field';
+import { MatDivider } from '@angular/material/divider';
+import { AsyncPipe, DecimalPipe } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'cx-side-navigation',
   templateUrl: './side-navigation.component.html',
-  styleUrls: ['./side-navigation.component.scss']
+  styleUrls: ['./side-navigation.component.scss'],
+  imports: [
+    MatButton,
+    RouterLink,
+    RouterLinkActive,
+    MatIcon,
+    MatLabel,
+    MatDivider,
+    AsyncPipe,
+    DecimalPipe,
+    TranslateModule
+  ]
 })
 export class SideNavigationComponent implements OnDestroy {
   isAdmin = false;
@@ -48,6 +67,7 @@ export class SideNavigationComponent implements OnDestroy {
   libraryStateSubscription$: Subscription;
   libraryState: LibraryState;
   lastReadUnreadCountSubscription$: Subscription;
+  selectedComicsSubscription$: Subscription;
   totalComicBooks$ = new BehaviorSubject<number>(0);
   selectedComicBooks$ = new BehaviorSubject<number>(0);
   unprocessedComicBooks$ = new BehaviorSubject<number>(0);
@@ -59,7 +79,10 @@ export class SideNavigationComponent implements OnDestroy {
   readingListsSubscription$: Subscription;
   readingLists: ReadingList[] = [];
 
-  constructor(private logger: LoggerService, private store: Store<any>) {
+  logger = inject(LoggerService);
+  store = inject(Store);
+
+  constructor() {
     this.featureEnabledSubscription$ = this.store
       .select(selectFeatureEnabledState)
       .subscribe(state => {
@@ -95,6 +118,9 @@ export class SideNavigationComponent implements OnDestroy {
       .subscribe(comicBooksRead =>
         this.readComicBooks$.next(comicBooksRead.length)
       );
+    this.selectedComicsSubscription$ = this.store
+      .select(selectComicBookSelectionState)
+      .subscribe(state => this.selectedComicBooks$.next(state.ids.length));
     this.readingListsSubscription$ = this.store
       .select(selectUserReadingLists)
       .subscribe(lists => (this.readingLists = lists));
@@ -119,6 +145,8 @@ export class SideNavigationComponent implements OnDestroy {
     this.lastReadUnreadCountSubscription$.unsubscribe();
     this.logger.trace('Unsubscribing from reading list updates');
     this.readingListsSubscription$.unsubscribe();
+    this.logger.trace('Unsubscribing from selected comic book updates');
+    this.selectedComicsSubscription$.unsubscribe();
     this.logger.trace('Unsubscribing from feature enabled updates');
     this.featureEnabledSubscription$.unsubscribe();
   }

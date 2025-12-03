@@ -20,13 +20,14 @@
     "import-comic-files": {
       "confirmation-message": "Are you sure you want to import the selected {count, plural, =1{comic} other{# comics}}?",
       "confirmation-title": "Import Selected Comics",
-      "effect-failure": "Failed to send comic files for import.",
-      "effect-success": "Submitted {count, plural, =1{one comic file} other{# comic files}} for import."
+      "effect-failure": "Failed to import comic files.",
+      "effect-success": "Import comic files started...."
     },
     "label": {
       "base-filename": "Filename",
       "filename": "Location",
       "filesize": "Size (kb)",
+      "filter-options": "Filter By Directory",
       "maximum-10-files": "10 files",
       "maximum-50-files": "50 files",
       "maximum-100-files": "100 files",
@@ -43,7 +44,7 @@
         "no-files-loaded": "No comic files loaded..."
       }
     },
-    "page-title": "Import Comics: {selected, plural, =1{One} other{#}} Of {count, plural, =1{One Comic} other{# Comics}} Selected",
+    "page-title": "Import Comics: {count, plural, =1{One} other{#}} Shown, {selected, plural, =1{One Comic} other{# Comics}} Selected",
     "placeholder": {
       "root-directory": "Root Directory To Search..."
     },
@@ -56,9 +57,9 @@
         "total": "Total"
       },
       "load-file-contents-step": "Loading File Contents",
-      "load-page-hash-step": "Loading Page Hashes",
       "mark-blocked-page-step": "Marking Pages With Blocked Hash",
       "move-comic-files-step": "Moving Comic Files",
+      "processing-unhashed-comics": "Processing Unhashed Comics",
       "recreating-comic-file-step": "Recreating Comic Files",
       "remove-deleted-comic-books-step": "Removing Deleted Comic Books",
       "scrape-metadata-step": "Batch scrape metadata",
@@ -70,8 +71,12 @@
     },
     "tab-title": "Import Comics",
     "text": {
+      "all-directories": "Show all directories...",
       "file-size": "{size} bytes",
       "selected-for-import": "This file will be imported."
+    },
+    "toggle-selections": {
+      "effect-failure": "Failed to update comic file selections..."
     },
     "tooltip": {
       "close-form": "Close the find files form...",
@@ -79,8 +84,6 @@
       "find-files": "Load files under this directory (shift+ctrl+f).",
       "select-all": "Select all comic files for import (ctrl+a).",
       "show-finder-form": "Find comic files to import...",
-      "skip-blocking-pages": "Skip marked blocked pages as deleted (currently {skipBlockingPages, select, true{ON} other{OFF}})",
-      "skip-metadata": "Skip processing metadata (currently {skipMetadata, select, true{ON} other{OFF}})",
       "start-import": "Start importing the selected comic files (ctrl+i).",
       "toggle-file-lookup-form": "Toggle the comic file lookup form."
     }

@@ -17,7 +17,7 @@
     color="primary"
     [disabled]="allSelected || showFinderForm"
     [matTooltip]="'comic-files.tooltip.select-all' | translate"
-    (click)="onSelectAll()"
+    (click)="onSelectAll(true)"
   >
     <mat-icon>check_box</mat-icon>
   </button>
@@ -28,32 +28,9 @@
     color="primary"
     [disabled]="!anySelected || showFinderForm"
     [matTooltip]="'comic-files.tooltip.deselect-all' | translate"
-    (click)="onDeselectAll()"
+    (click)="onSelectAll(false)"
   >
     <mat-icon>check_box_outline_blank</mat-icon>
-  </button>
-  <button
-    id="skip-metadata-button"
-    class="cx-margin-right-5"
-    mat-fab
-    [color]="skipMetadata ? 'warn' : 'accent'"
-    [disabled]="showFinderForm"
-    [matTooltip]="'comic-files.tooltip.skip-metadata' | translate:{skipMetadata}"
-    (click)="onSkipMetadata(!skipMetadata)"
-  >
-    <mat-icon>description</mat-icon>
-  </button>
-  <button
-    *ngIf="blockedPagesEnabled"
-    id="skip-blocking-pages-button"
-    class="cx-margin-right-5"
-    mat-fab
-    [color]="skipBlockingPages ? 'warn' : 'accent'"
-    [disabled]="showFinderForm"
-    [matTooltip]="'comic-files.tooltip.skip-blocking-pages' | translate:{skipBlockingPages}"
-    (click)="onSkipBlockingPages(!skipBlockingPages)"
-  >
-    <mat-icon>block</mat-icon>
   </button>
   <button
     id="start-import-button"
@@ -68,49 +45,60 @@
   </button>
 </div>
 
-<div
-  *ngIf="showCoverPopup"
-  class="cx-hover cx-centered cx-width-25 cx-border-primary-1"
->
-  <mat-card-title class="cx-text-nowrap">
-    {{ comicFile.baseFilename }}
-  </mat-card-title>
-  <mat-card-subtitle class="cx-text-nowrap">
-    {{ comicFile.filename }}
-  </mat-card-subtitle>
-  <mat-card appearance="outlined">
-    <mat-card-content class="cx-padding-5">
-      <img
-        loading="lazy"
-        [src]="comicFile | comicFileCoverUrl"
-        width="100%"
-        height="auto"
-        [alt]="comicFile.baseFilename"
-      />
-    </mat-card-content>
-  </mat-card>
-</div>
-
-<cx-comic-file-loader
-  *ngIf="showFinderForm"
-  class="
-    cx-centered
-    cx-position-absolute
-    cx-width-50
-    cx-border-primary-1
-    cx-z-index-99
-  "
-  [user]="user"
-  (closeForm)="showFinderForm = false"
-></cx-comic-file-loader>
+@if (showCoverPopup) {
+  <div class="cx-hover cx-centered cx-width-25 cx-border-primary-1">
+    <mat-card-title class="cx-text-nowrap">
+      {{ comicFile.baseFilename }}
+    </mat-card-title>
+    <mat-card-subtitle class="cx-text-nowrap">
+      {{ comicFile.filename }}
+    </mat-card-subtitle>
+    <mat-card appearance="outlined">
+      <mat-card-content class="cx-padding-5">
+        <img
+          loading="lazy"
+          [src]="comicFile | comicFileCoverUrl"
+          width="100%"
+          height="auto"
+          [alt]="comicFile.baseFilename"
+        />
+      </mat-card-content>
+    </mat-card>
+  </div>
+}
+@if (showFinderForm) {
+  <cx-comic-file-loader
+    class="cx-centered cx-position-absolute cx-width-50 cx-border-primary-1 cx-z-index-99"
+    [user]="user"
+    (closeForm)="showFinderForm = false"
+  ></cx-comic-file-loader>
+}
 
 <h2>
   {{
     "comic-files.page-title"
       | translate
-        : { count: dataSource.data.length, selected: selectedFiles.length }
+        : { count: dataSource.data.length, selected: selectedFileCount }
   }}
 </h2>
+
+<mat-form-field class="cx-width-100" appearance="outline">
+  <mat-label class="cx-text-nowrap">
+    {{ "comic-files.label.filter-options" | translate }}
+  </mat-label>
+  <mat-select
+    [value]="currentPath"
+    (selectionChange)="onChangeCurrentPath($event.value)"
+    [placeholder]="'comic-files.text.all-directories' | translate"
+  >
+    @for (option of pathOptions$ | async; track option) {
+      <mat-option [value]="option.value">
+        {{ option.label | translate }}
+      </mat-option>
+    }
+  </mat-select>
+  <input matInput readonly hidden />
+</mat-form-field>
 
 <mat-paginator
   class="cx-height-100"
@@ -141,8 +129,7 @@
       <mat-checkbox
         [disabled]="!dataSource.data.length"
         [checked]="allSelected"
-        (change)="onToggleAllSelected($event.checked)"
-        (keyup)="onToggleAllSelected($event.checked)"
+        (change)="onSelectAll($event.checked)"
         (click)="$event.stopPropagation()"
       ></mat-checkbox>
     </mat-header-cell>
@@ -150,8 +137,8 @@
       <span class="cx-width-100 cx-text-nowrap">
         <mat-checkbox
           [checked]="entry.selected"
-          (change)="onSelectEntry(entry.item, $event.checked)"
-          (keyup)="onSelectEntry(entry.item, $event.checked)"
+          (change)="onSelectEntry(entry, $event.checked)"
+          (keyup)="onSelectEntry(entry, $event.checked)"
           (click)="$event.stopPropagation()"
         ></mat-checkbox>
       </span>
@@ -166,11 +153,11 @@
       <span class="cx-width-100">
         <img
           loading="lazy"
-          [src]="entry.item | comicFileCoverUrl"
-          [alt]="entry.item.baseFilename"
+          [src]="entry | comicFileCoverUrl"
+          [alt]="entry.baseFilename"
           width="100%"
           height="auto"
-          (mouseenter)="onShowPopup(true, entry.item)"
+          (mouseenter)="onShowPopup(true, entry)"
           (mouseleave)="onShowPopup(false, null)"
         />
       </span>
@@ -182,11 +169,8 @@
       {{ "comic-files.label.filename" | translate }}
     </mat-header-cell>
     <mat-cell *matCellDef="let entry">
-      <span
-        class="cx-width-100 cx-text-nowrap"
-        [matTooltip]="entry.item.filename"
-      >
-        {{ entry.item.filename }}
+      <span class="cx-width-100 cx-text-nowrap" [matTooltip]="entry.filename">
+        {{ entry.filename }}
       </span>
     </mat-cell>
   </ng-container>
@@ -198,9 +182,9 @@
     <mat-cell *matCellDef="let entry">
       <span
         class="cx-width-100 cx-text-nowrap"
-        [matTooltip]="entry.item.baseFilename"
+        [matTooltip]="entry.baseFilename"
       >
-        {{ entry.item.baseFilename }}
+        {{ entry.baseFilename }}
       </span>
     </mat-cell>
   </ng-container>
@@ -211,7 +195,7 @@
     </mat-header-cell>
     <mat-cell *matCellDef="let entry">
       <span class="cx-width-100 cx-text-nowrap">
-        {{ entry.item.size / 1024 | number: "1.0-0" }}
+        {{ entry.size / 1024 | number: "1.0-0" }}
       </span>
     </mat-cell>
   </ng-container>
@@ -227,31 +211,29 @@
 
 <mat-menu #contextMenu="matMenu">
   <ng-template matMenuContent>
-    <button
-      *ngIf="!isFileSelected(file)"
-      mat-menu-item
-      (click)="onSetOneSelected(true)"
-    >
-      <mat-icon>add</mat-icon>
-      <mat-label>
-        {{ "comic-files.context-menu.select-one" | translate }}
-      </mat-label>
-    </button>
-    <button
-      *ngIf="isFileSelected(file)"
-      mat-menu-item
-      (click)="onSetOneSelected(false)"
-    >
-      <mat-icon>remove</mat-icon>
-      <mat-label>
-        {{ "comic-files.context-menu.deselect-one" | translate }}
-      </mat-label>
-    </button>
-    <button *ngIf="anySelected" mat-menu-item (click)="onDeselectAll()">
-      <mat-icon>clear_all</mat-icon>
-      <mat-label>
-        {{ "comic-files.context-menu.deselect-all" | translate }}
-      </mat-label>
-    </button>
+    @if (!isFileSelected(file)) {
+      <button mat-menu-item (click)="onSetOneSelected(true)">
+        <mat-icon>add</mat-icon>
+        <mat-label>
+          {{ "comic-files.context-menu.select-one" | translate }}
+        </mat-label>
+      </button>
+    }
+    @if (isFileSelected(file)) {
+      <button mat-menu-item (click)="onSetOneSelected(false)">
+        <mat-icon>remove</mat-icon>
+        <mat-label>
+          {{ "comic-files.context-menu.deselect-one" | translate }}
+        </mat-label>
+      </button>
+    }
+    @if (anySelected) {
+      <button mat-menu-item (click)="onDeselectAll()">
+        <mat-icon>clear_all</mat-icon>
+        <mat-label>
+          {{ "comic-files.context-menu.deselect-all" | translate }}
+        </mat-label>
+      </button>
+    }
   </ng-template>
 </mat-menu>

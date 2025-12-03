@@ -24,9 +24,7 @@ import {
 } from '@app/library/library.constants';
 import { ComicPage } from '@app/comic-books/models/comic-page';
 
-@Pipe({
-  name: 'comicPageUrl'
-})
+@Pipe({ name: 'comicPageUrl' })
 export class ComicPageUrlPipe implements PipeTransform {
   transform(page: ComicPage): string {
     if (!!page) {

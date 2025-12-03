@@ -16,14 +16,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { DisplayableComic } from '@app/comic-books/models/displayable-comic';
 import { Subscription } from 'rxjs';
 import { ReadingList } from '@app/lists/models/reading-list';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import { Store } from '@ngrx/store';
 import { ActivatedRoute } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { TitleService } from '@app/core/services/title.service';
 import { QueryParameterService } from '@app/core/services/query-parameter.service';
 import {
@@ -44,11 +44,24 @@ import { loadComicsForCollection } from '@app/comic-books/actions/comic-list.act
 import { ComicTagType } from '@app/comic-books/models/comic-tag-type';
 import { isAdmin } from '@app/user/user.functions';
 import { SCRAPE_STORY_PARAMETER } from '@app/collections/collections.constants';
+import { MatFabButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
+import { ComicListViewComponent } from '../../../comic-books/components/comic-list-view/comic-list-view.component';
+import { StoryScrapingComponent } from '../../components/story-scraping/story-scraping.component';
 
 @Component({
   selector: 'cx-story-detail',
   templateUrl: './story-detail-page.component.html',
-  styleUrl: './story-detail-page.component.scss'
+  styleUrl: './story-detail-page.component.scss',
+  imports: [
+    MatFabButton,
+    MatTooltip,
+    MatIcon,
+    ComicListViewComponent,
+    StoryScrapingComponent,
+    TranslateModule
+  ]
 })
 export class StoryDetailPageComponent implements OnInit, OnDestroy {
   comics: DisplayableComic[] = [];
@@ -75,14 +88,14 @@ export class StoryDetailPageComponent implements OnInit, OnDestroy {
   langChangeSubscription: Subscription;
   showCovers = false;
 
-  constructor(
-    private logger: LoggerService,
-    private store: Store<any>,
-    private activatedRoute: ActivatedRoute,
-    private translateService: TranslateService,
-    private titleService: TitleService,
-    public queryParameterService: QueryParameterService
-  ) {
+  logger = inject(LoggerService);
+  store = inject(Store);
+  activatedRoute = inject(ActivatedRoute);
+  translateService = inject(TranslateService);
+  titleService = inject(TitleService);
+  queryParameterService = inject(QueryParameterService);
+
+  constructor() {
     this.queryParamsSubscription = this.activatedRoute.queryParams.subscribe(
       params => {
         this.doLoadComicDetails();

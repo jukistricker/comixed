@@ -22,6 +22,8 @@ import { AdminGuard, ReaderGuard } from '@app/user';
 import { LibraryPageComponent } from '@app/library/pages/library-page/library-page.component';
 import { DuplicatePageListPageComponent } from '@app/library/pages/duplicate-page-list-page/duplicate-page-list-page.component';
 import { DuplicatePageDetailPageComponent } from '@app/library/pages/duplicate-page-detail-page/duplicate-page-detail-page.component';
+import { DuplicateComicsListPageComponent } from '@app/library/pages/duplicate-comics-list-page/duplicate-comics-list-page.component';
+import { DuplicateComicsDetailPageComponent } from '@app/library/pages/duplicate-comics-detail-page/duplicate-comics-detail-page.component';
 
 const routes: Routes = [
   {
@@ -67,9 +69,13 @@ const routes: Routes = [
   },
   {
     path: 'library/duplicates/comics',
-    component: LibraryPageComponent,
-    canActivate: [AdminGuard],
-    data: { duplicates: true }
+    component: DuplicateComicsListPageComponent,
+    canActivate: [AdminGuard]
+  },
+  {
+    path: 'library/duplicates/:publisher/:series/:volume/:issueNumber/:coverDate',
+    component: DuplicateComicsDetailPageComponent,
+    canActivate: [AdminGuard]
   },
   {
     path: 'library/duplicates/pages',

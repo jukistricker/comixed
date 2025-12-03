@@ -3,17 +3,22 @@
 </h2>
 
 <div class="cx-fab-container-bottom-left">
-  <button
-    *ngIf="unreadOnly"
-    id="toggle-unread-only-flag"
-    mat-fab
-    color="primary"
-    [matTooltip]="'library.tooltip.toggle-unread-comics' | translate"
-    (click)="onToggleUnreadOnly()"
-  >
-    <mat-icon *ngIf="showReadOnly">mark_chat_read</mat-icon>
-    <mat-icon *ngIf="!showReadOnly">mark_chat_unread</mat-icon>
-  </button>
+  @if (unreadOnly) {
+    <button
+      id="toggle-unread-only-flag"
+      mat-fab
+      color="primary"
+      [matTooltip]="'library.tooltip.toggle-unread-comics' | translate"
+      (click)="onToggleUnreadOnly()"
+    >
+      @if (showReadOnly) {
+        <mat-icon>mark_chat_read</mat-icon>
+      }
+      @if (!showReadOnly) {
+        <mat-icon>mark_chat_unread</mat-icon>
+      }
+    </button>
+  }
 </div>
 
 <cx-comic-list-view
@@ -27,7 +32,7 @@
   [selectedIds]="selectedIds"
   [readingLists]="readingLists"
   [unreadOnly]="unreadOnly"
-  [showFilter]="!(unreadOnly || selectedOnly || duplicatesOnly)"
+  [showFilter]="!(unreadOnly || selectedOnly)"
   (selectAll)="onSetAllComicsSelectedState($event)"
   (filtered)="filtered = $event"
   (showing)="showing = $event"

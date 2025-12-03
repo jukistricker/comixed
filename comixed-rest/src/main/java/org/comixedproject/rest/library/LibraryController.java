@@ -18,7 +18,7 @@
 
 package org.comixedproject.rest.library;
 
-import static org.comixedproject.batch.comicbooks.UpdateComicBooksConfiguration.*;
+import static org.comixedproject.batch.comicbooks.EditComicBookMetadataConfiguration.*;
 import static org.comixedproject.rest.comicbooks.ComicBookSelectionController.LIBRARY_SELECTIONS;
 
 import com.fasterxml.jackson.annotation.JsonView;
@@ -37,7 +37,10 @@ import org.comixedproject.model.net.comicbooks.EditMultipleComicsRequest;
 import org.comixedproject.model.net.library.PurgeLibraryRequest;
 import org.comixedproject.model.net.library.RemoteLibraryState;
 import org.comixedproject.service.admin.ConfigurationService;
-import org.comixedproject.service.comicbooks.*;
+import org.comixedproject.service.comicbooks.ComicBookException;
+import org.comixedproject.service.comicbooks.ComicBookSelectionException;
+import org.comixedproject.service.comicbooks.ComicBookService;
+import org.comixedproject.service.comicbooks.ComicSelectionService;
 import org.comixedproject.service.library.LibraryException;
 import org.comixedproject.service.library.LibraryService;
 import org.comixedproject.service.library.RemoteLibraryStateService;
@@ -71,8 +74,8 @@ public class LibraryController {
   private JobLauncher jobLauncher;
 
   @Autowired
-  @Qualifier(UPDATE_COMIC_BOOKS_JOB)
-  private Job updateComicBooksJob;
+  @Qualifier(EDIT_COMIC_METADATA_JOB)
+  private Job editComicMetadataJob;
 
   /**
    * Retrieves the current state of the library.
@@ -302,7 +305,7 @@ public class LibraryController {
     final List<Long> selectedComicBookIds =
         this.comicSelectionService.decodeSelections(session.getAttribute(LIBRARY_SELECTIONS));
     log.info("Updating the metadata for {} comic(s): email={}", selectedComicBookIds.size(), email);
-    this.libraryService.updateMetadata(selectedComicBookIds);
+    this.libraryService.updateMetadata(new ArrayList<>(selectedComicBookIds));
     this.comicSelectionService.clearSelectedComicBooks(email, selectedComicBookIds);
     session.setAttribute(
         LIBRARY_SELECTIONS, this.comicSelectionService.encodeSelections(selectedComicBookIds));
@@ -338,16 +341,16 @@ public class LibraryController {
     this.comicBookService.updateMultipleComics(ids);
     log.trace("Launching update comics batch process");
     this.jobLauncher.run(
-        this.updateComicBooksJob,
+        this.editComicMetadataJob,
         new JobParametersBuilder()
-            .addLong(UPDATE_COMIC_BOOKS_JOB_TIME_STARTED, System.currentTimeMillis())
-            .addString(UPDATE_COMIC_BOOKS_JOB_PUBLISHER, request.getPublisher())
-            .addString(UPDATE_COMIC_BOOKS_JOB_SERIES, request.getSeries())
-            .addString(UPDATE_COMIC_BOOKS_JOB_VOLUME, request.getVolume())
-            .addString(UPDATE_COMIC_BOOKS_JOB_ISSUE_NUMBER, request.getIssueNumber())
-            .addString(UPDATE_COMIC_BOOKS_JOB_IMPRINT, request.getImprint())
+            .addLong(EDIT_COMIC_METADATA_JOB_TIME_STARTED, System.currentTimeMillis())
+            .addString(EDIT_COMIC_METADATA_JOB_PUBLISHER, request.getPublisher())
+            .addString(EDIT_COMIC_METADATA_JOB_SERIES, request.getSeries())
+            .addString(EDIT_COMIC_METADATA_JOB_VOLUME, request.getVolume())
+            .addString(EDIT_COMIC_METADATA_JOB_ISSUE_NUMBER, request.getIssueNumber())
+            .addString(EDIT_COMIC_METADATA_JOB_IMPRINT, request.getImprint())
             .addString(
-                UPDATE_COMIC_BOOKS_JOB_COMIC_TYPE,
+                EDIT_COMIC_METADATA_JOB_COMIC_TYPE,
                 request.getComicType() != null ? request.getComicType().name() : "")
             .toJobParameters());
   }

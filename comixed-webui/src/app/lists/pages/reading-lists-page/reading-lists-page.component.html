@@ -26,14 +26,16 @@
   </button>
 </div>
 
-<mat-toolbar *ngIf="showUploadRow">
-  <input
-    id="fileUpload"
-    type="file"
-    (change)="onFileSelected($event.target.files[0])"
-    (click)="$event.stopPropagation()"
-  />
-</mat-toolbar>
+@if (showUploadRow) {
+  <mat-toolbar>
+    <input
+      id="fileUpload"
+      type="file"
+      (change)="onFileSelected($event.target.files[0])"
+      (click)="$event.stopPropagation()"
+    />
+  </mat-toolbar>
+}
 
 <mat-paginator
   class="cx-height-100"

@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, OnDestroy } from '@angular/core';
+import { Component, inject, OnDestroy } from '@angular/core';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import { Store } from '@ngrx/store';
 import { Subscription } from 'rxjs';
@@ -24,28 +24,45 @@ import { ActivatedRoute, Router } from '@angular/router';
 import {
   UntypedFormBuilder,
   UntypedFormGroup,
-  Validators
+  Validators,
+  ReactiveFormsModule
 } from '@angular/forms';
 import { setBusyState } from '@app/core/actions/busy.actions';
 import { BlockedHash } from '@app/comic-pages/models/blocked-hash';
 import { selectUser } from '@app/user/selectors/user.selectors';
 import { isAdmin } from '@app/user/user.functions';
 import { filter } from 'rxjs/operators';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { ConfirmationService } from '@tragically-slick/confirmation';
 import {
   loadBlockedHashDetail,
   saveBlockedHash
 } from '@app/comic-pages/actions/blocked-hashes.actions';
 import {
-  selectBlockedHashesState,
-  selectBlockedHashDetail
+  selectBlockedHashDetail,
+  selectBlockedHashesState
 } from '@app/comic-pages/selectors/blocked-hashes.selectors';
+import { MatFabButton, MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { BlockedHashThumbnailUrlPipe } from '../../pipes/blocked-hash-thumbnail-url.pipe';
 
 @Component({
   selector: 'cx-blocked-hash-detail-page',
   templateUrl: './blocked-hash-detail-page.component.html',
-  styleUrls: ['./blocked-hash-detail-page.component.scss']
+  styleUrls: ['./blocked-hash-detail-page.component.scss'],
+  imports: [
+    MatFabButton,
+    MatIcon,
+    ReactiveFormsModule,
+    MatFormField,
+    MatLabel,
+    MatInput,
+    MatButton,
+    TranslateModule,
+    BlockedHashThumbnailUrlPipe
+  ]
 })
 export class BlockedHashDetailPageComponent implements OnDestroy {
   paramsSubscription: Subscription;
@@ -57,15 +74,15 @@ export class BlockedHashDetailPageComponent implements OnDestroy {
 
   blockedPageForm: UntypedFormGroup;
 
-  constructor(
-    private logger: LoggerService,
-    private store: Store<any>,
-    private activatedRoute: ActivatedRoute,
-    private router: Router,
-    private formBuilder: UntypedFormBuilder,
-    private confirmationService: ConfirmationService,
-    private translateService: TranslateService
-  ) {
+  logger = inject(LoggerService);
+  store = inject(Store);
+  activatedRoute = inject(ActivatedRoute);
+  router = inject(Router);
+  formBuilder = inject(UntypedFormBuilder);
+  confirmationService = inject(ConfirmationService);
+  translateService = inject(TranslateService);
+
+  constructor() {
     this.paramsSubscription = this.activatedRoute.params.subscribe(params => {
       this.hash = params.hash;
       this.logger.debug('Received blocked page hash:', this.hash);

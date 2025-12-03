@@ -36,9 +36,7 @@ import {
   COMIC_FILE_3,
   COMIC_FILE_4
 } from '@app/comic-files/comic-file.fixtures';
-import { sendComicFiles } from '@app/comic-files/actions/import-comic-files.actions';
-import { USER_ADMIN, USER_READER } from '@app/user/user.fixtures';
-import { User } from '@app/user/models/user';
+import { USER_READER } from '@app/user/user.fixtures';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -70,32 +68,43 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { ComicFileLoaderComponent } from '@app/comic-files/components/comic-file-loader/comic-file-loader.component';
 import { RouterTestingModule } from '@angular/router/testing';
 import { MatSortModule } from '@angular/material/sort';
-import {
-  PREFERENCE_SKIP_BLOCKING_PAGES,
-  PREFERENCE_SKIP_METADATA
-} from '@app/comic-files/comic-file.constants';
 import { Router } from '@angular/router';
-import { ComicFile } from '@app/comic-files/models/comic-file';
-import { SelectableListItem } from '@app/core/models/ui/selectable-list-item';
 import {
-  clearComicFileSelections,
-  setComicFilesSelectedState
+  toggleComicFileSelections,
+  updateCurrentPath
 } from '@app/comic-files/actions/comic-file-list.actions';
-import { saveUserPreference } from '@app/user/actions/user.actions';
 import {
   FEATURE_ENABLED_FEATURE_KEY,
   initialState as initialFeatureEnabledState
 } from '@app/admin/reducers/feature-enabled.reducer';
 import { getFeatureEnabled } from '@app/admin/actions/feature-enabled.actions';
 import { BLOCKED_PAGES_ENABLED } from '@app/admin/admin.constants';
+import { importComicFiles } from '@app/comic-files/actions/import-comic-files.actions';
+import { ComicFileGroup } from '@app/comic-files/models/comic-file-group';
 
 describe('ImportComicsPageComponent', () => {
   const USER = USER_READER;
-  const FILES = [COMIC_FILE_1, COMIC_FILE_2, COMIC_FILE_3, COMIC_FILE_4];
+  const FILES = [
+    { ...COMIC_FILE_1, selected: true },
+    { ...COMIC_FILE_2, selected: true },
+    {
+      ...COMIC_FILE_3,
+      selected: true
+    },
+    { ...COMIC_FILE_4, selected: true }
+  ];
+  const GROUPS: ComicFileGroup[] = [
+    {
+      directory: 'directory1',
+      files: [COMIC_FILE_1, COMIC_FILE_3]
+    },
+    {
+      directory: 'directory2',
+      files: [COMIC_FILE_2, COMIC_FILE_4]
+    }
+  ];
   const FILE = COMIC_FILE_3;
   const PAGE_SIZE = 400;
-  const SKIP_METADATA = Math.random() > 0.5;
-  const SKIP_BLOCKING_PAGES = Math.random() > 0.5;
   const BLOCKED_PAGES_ENABLED_FEATURE_ENABLED = Math.random() > 0.5;
 
   const initialState = {
@@ -116,57 +125,53 @@ describe('ImportComicsPageComponent', () => {
   let dialog: MatDialog;
   let router: Router;
 
-  beforeEach(
-    waitForAsync(() => {
-      TestBed.configureTestingModule({
-        declarations: [
-          ImportComicsPageComponent,
-          ComicFileLoaderComponent,
-          ComicFileCoverUrlPipe
-        ],
-        imports: [
-          NoopAnimationsModule,
-          RouterTestingModule.withRoutes([{ path: '*', redirectTo: '' }]),
-          ReactiveFormsModule,
-          FormsModule,
-          LoggerModule.forRoot(),
-          TranslateModule.forRoot(),
-          MatDialogModule,
-          MatButtonModule,
-          MatCheckboxModule,
-          MatIconModule,
-          MatInputModule,
-          MatSelectModule,
-          MatTableModule,
-          MatCardModule,
-          MatTooltipModule,
-          MatToolbarModule,
-          MatMenuModule,
-          MatPaginatorModule,
-          MatSortModule
-        ],
-        providers: [
-          provideMockStore({ initialState }),
-          ConfirmationService,
-          TitleService
-        ]
-      }).compileComponents();
+  beforeEach(waitForAsync(() => {
+    TestBed.configureTestingModule({
+      imports: [
+        NoopAnimationsModule,
+        RouterTestingModule.withRoutes([{ path: '*', redirectTo: '' }]),
+        ReactiveFormsModule,
+        FormsModule,
+        LoggerModule.forRoot(),
+        TranslateModule.forRoot(),
+        MatDialogModule,
+        MatButtonModule,
+        MatCheckboxModule,
+        MatIconModule,
+        MatInputModule,
+        MatSelectModule,
+        MatTableModule,
+        MatCardModule,
+        MatTooltipModule,
+        MatToolbarModule,
+        MatMenuModule,
+        MatPaginatorModule,
+        MatSortModule,
+        ImportComicsPageComponent,
+        ComicFileLoaderComponent,
+        ComicFileCoverUrlPipe
+      ],
+      providers: [
+        provideMockStore({ initialState }),
+        ConfirmationService,
+        TitleService
+      ]
+    }).compileComponents();
 
-      fixture = TestBed.createComponent(ImportComicsPageComponent);
-      component = fixture.componentInstance;
-      store = TestBed.inject(MockStore);
-      spyOnStoreDispatch = spyOn(store, 'dispatch');
-      confirmationService = TestBed.inject(ConfirmationService);
-      titleService = TestBed.inject(TitleService);
-      spyOn(titleService, 'setTitle');
-      translateService = TestBed.inject(TranslateService);
-      dialog = TestBed.inject(MatDialog);
-      spyOn(dialog, 'open');
-      router = TestBed.inject(Router);
-      spyOn(router, 'navigateByUrl');
-      fixture.detectChanges();
-    })
-  );
+    fixture = TestBed.createComponent(ImportComicsPageComponent);
+    component = fixture.componentInstance;
+    store = TestBed.inject(MockStore);
+    spyOnStoreDispatch = spyOn(store, 'dispatch');
+    confirmationService = TestBed.inject(ConfirmationService);
+    titleService = TestBed.inject(TitleService);
+    spyOn(titleService, 'setTitle');
+    translateService = TestBed.inject(TranslateService);
+    dialog = TestBed.inject(MatDialog);
+    spyOn(dialog, 'open');
+    router = TestBed.inject(Router);
+    spyOn(router, 'navigateByUrl');
+    fixture.detectChanges();
+  }));
 
   it('should create', () => {
     expect(component).toBeTruthy();
@@ -182,63 +187,9 @@ describe('ImportComicsPageComponent', () => {
     });
   });
 
-  describe('loading user preferences', () => {
-    beforeEach(() => {
-      component.skipMetadata = !SKIP_METADATA;
-      component.skipBlockingPages = !SKIP_BLOCKING_PAGES;
-      const user = {
-        ...USER_ADMIN,
-        preferences: [
-          {
-            name: PREFERENCE_SKIP_METADATA,
-            value: `${SKIP_METADATA}`
-          },
-          {
-            name: PREFERENCE_SKIP_BLOCKING_PAGES,
-            value: `${SKIP_BLOCKING_PAGES}`
-          }
-        ]
-      } as User;
-      store.setState({
-        ...initialState,
-        [USER_FEATURE_KEY]: {
-          ...initialUserState,
-          user
-        }
-      });
-    });
-
-    it('sets the skip metadata flag', () => {
-      expect(component.skipMetadata).toEqual(SKIP_METADATA);
-    });
-
-    it('sets the skip blocking pages flag', () => {
-      expect(component.skipBlockingPages).toEqual(SKIP_BLOCKING_PAGES);
-    });
-  });
-
   describe('when loading files', () => {
-    describe('when loading starts', () => {
-      beforeEach(() => {
-        store.setState({
-          ...initialState,
-          [COMIC_FILE_LIST_FEATURE_KEY]: {
-            ...initialComicFileListState,
-            loading: true
-          }
-        });
-      });
-
-      it('fires an action', () => {
-        expect(store.dispatch).toHaveBeenCalledWith(
-          setBusyState({ enabled: true })
-        );
-      });
-    });
-
     describe('when loading stops', () => {
       beforeEach(() => {
-        component.selectedFiles = FILES;
         component.allSelected = false;
         component.anySelected = false;
         store.setState({
@@ -308,139 +259,119 @@ describe('ImportComicsPageComponent', () => {
   describe('starting the import process', () => {
     beforeEach(() => {
       component.files = FILES;
-      component.selectedFiles = FILES;
 
       spyOn(confirmationService, 'confirm').and.callFake(
         (confirm: Confirmation) => confirm.confirm()
       );
+
+      component.onStartImport();
     });
 
-    describe('not skipping metadata', () => {
-      beforeEach(() => {
-        component.skipMetadata = false;
-        component.onStartImport();
-      });
-
-      it('confirms with the user', () => {
-        expect(confirmationService.confirm).toHaveBeenCalled();
-      });
-
-      it('fires an action', () => {
-        expect(store.dispatch).toHaveBeenCalledWith(
-          sendComicFiles({
-            files: FILES,
-            skipMetadata: false,
-            skipBlockingPages: false
-          })
-        );
-      });
-    });
-
-    describe('skipping metadata', () => {
-      beforeEach(() => {
-        component.skipMetadata = true;
-        component.onStartImport();
-      });
-
-      it('confirms with the user', () => {
-        expect(confirmationService.confirm).toHaveBeenCalled();
-      });
-
-      it('fires an action', () => {
-        expect(store.dispatch).toHaveBeenCalledWith(
-          sendComicFiles({
-            files: FILES,
-            skipMetadata: true,
-            skipBlockingPages: false
-          })
-        );
-      });
-    });
-
-    describe('skipping blcoking pages', () => {
-      beforeEach(() => {
-        component.skipBlockingPages = true;
-        component.onStartImport();
-      });
-
-      it('confirms with the user', () => {
-        expect(confirmationService.confirm).toHaveBeenCalled();
-      });
-
-      it('fires an action', () => {
-        expect(store.dispatch).toHaveBeenCalledWith(
-          sendComicFiles({
-            files: FILES,
-            skipMetadata: false,
-            skipBlockingPages: true
-          })
-        );
-      });
+    it('fires an action', () => {
+      expect(store.dispatch).toHaveBeenCalledWith(importComicFiles());
     });
   });
 
   describe('sorting records', () => {
-    const ITEM = {
-      item: COMIC_FILE_3,
-      selected: Math.random() > 0.5
-    } as SelectableListItem<ComicFile>;
+    const ITEM = { ...COMIC_FILE_3, selected: Math.random() > 0.5 };
 
     it('can sort by selected state', () => {
       expect(
-        component.dataSource.sortingDataAccessor(ITEM, 'selected')
+        component.dataSource.sortingDataAccessor(ITEM, 'selection')
       ).toEqual(`${ITEM.selected}`);
     });
 
     it('can sort by selected filename', () => {
       expect(
         component.dataSource.sortingDataAccessor(ITEM, 'filename')
-      ).toEqual(ITEM.item.filename);
+      ).toEqual(ITEM.filename);
     });
 
     it('can sort by selected base filename', () => {
       expect(
         component.dataSource.sortingDataAccessor(ITEM, 'base-filename')
-      ).toEqual(ITEM.item.baseFilename);
+      ).toEqual(ITEM.baseFilename);
     });
 
     it('can sort by selected size', () => {
       expect(component.dataSource.sortingDataAccessor(ITEM, 'size')).toEqual(
-        ITEM.item.size
+        ITEM.size
       );
     });
 
     it('can sort by default', () => {
       expect(component.dataSource.sortingDataAccessor(ITEM, 'unknown')).toEqual(
-        ITEM.item.id
+        ITEM.id
       );
     });
   });
 
   describe('selecting comic files', () => {
-    beforeEach(() => {
-      component.files = FILES;
-      component.selectedFiles = FILES;
-    });
-
     describe('it can select all', () => {
       beforeEach(() => {
-        component.onToggleAllSelected(true);
+        component.currentPath = '';
+        component.onSelectAll(true);
       });
 
       it('fires an action', () => {
         expect(store.dispatch).toHaveBeenCalledWith(
-          setComicFilesSelectedState({ selected: true, files: FILES })
+          toggleComicFileSelections({
+            filename: '',
+            selected: true,
+            single: false
+          })
+        );
+      });
+    });
+
+    describe('it can select all with a current path', () => {
+      beforeEach(() => {
+        component.currentPath = GROUPS[0].directory;
+        component.onSelectAll(true);
+      });
+
+      it('fires an action', () => {
+        expect(store.dispatch).toHaveBeenCalledWith(
+          toggleComicFileSelections({
+            filename: GROUPS[0].directory,
+            selected: true,
+            single: false
+          })
         );
       });
     });
 
     describe('it can deselect all', () => {
       beforeEach(() => {
-        component.onToggleAllSelected(false);
+        component.currentPath = '';
+        component.onSelectAll(false);
       });
 
       it('fires an action', () => {
-        expect(store.dispatch).toHaveBeenCalledWith(clearComicFileSelections());
+        expect(store.dispatch).toHaveBeenCalledWith(
+          toggleComicFileSelections({
+            filename: '',
+            selected: false,
+            single: false
+          })
+        );
+      });
+    });
+
+    describe('it can deselect all with a current path', () => {
+      beforeEach(() => {
+        component.currentPath = GROUPS[0].directory;
+        component.onSelectAll(false);
+      });
+
+      it('fires an action', () => {
+        expect(store.dispatch).toHaveBeenCalledWith(
+          toggleComicFileSelections({
+            filename: GROUPS[0].directory,
+            selected: false,
+            single: false
+          })
+        );
       });
     });
 
@@ -453,39 +384,13 @@ describe('ImportComicsPageComponent', () => {
 
       it('fires an action', () => {
         expect(store.dispatch).toHaveBeenCalledWith(
-          setComicFilesSelectedState({ files: [FILE], selected: SELECTED })
+          toggleComicFileSelections({
+            filename: FILE.filename,
+            selected: SELECTED,
+            single: true
+          })
         );
       });
-    });
-  });
-
-  describe('toggling the skip metadata flag', () => {
-    beforeEach(() => {
-      component.onSkipMetadata(SKIP_METADATA);
-    });
-
-    it('saves the user preference', () => {
-      expect(store.dispatch).toHaveBeenCalledWith(
-        saveUserPreference({
-          name: PREFERENCE_SKIP_METADATA,
-          value: `${SKIP_METADATA}`
-        })
-      );
-    });
-  });
-
-  describe('toggling the skip blocking pages flag', () => {
-    beforeEach(() => {
-      component.onSkipBlockingPages(SKIP_BLOCKING_PAGES);
-    });
-
-    it('saves the user preference', () => {
-      expect(store.dispatch).toHaveBeenCalledWith(
-        saveUserPreference({
-          name: PREFERENCE_SKIP_BLOCKING_PAGES,
-          value: `${SKIP_BLOCKING_PAGES}`
-        })
-      );
     });
   });
 
@@ -571,6 +476,91 @@ describe('ImportComicsPageComponent', () => {
         expect(component.blockedPagesEnabled).toEqual(
           BLOCKED_PAGES_ENABLED_FEATURE_ENABLED
         );
+      });
+    });
+  });
+
+  describe('changing the current path filter', () => {
+    describe('setting a value', () => {
+      beforeEach(() => {
+        component.onChangeCurrentPath(GROUPS[0].directory);
+      });
+
+      it('fires an action', () => {
+        expect(store.dispatch).toHaveBeenCalledWith(
+          updateCurrentPath({ path: GROUPS[0].directory })
+        );
+      });
+    });
+
+    describe('clearing the path', () => {
+      beforeEach(() => {
+        component.onChangeCurrentPath(null);
+      });
+
+      it('fires an action', () => {
+        expect(store.dispatch).toHaveBeenCalledWith(
+          updateCurrentPath({ path: null })
+        );
+      });
+    });
+  });
+
+  describe('updating displayed comic files', () => {
+    describe('when a current path is set', () => {
+      beforeEach(() => {
+        component.currentPath = GROUPS[0].directory;
+        component.dataSource.data = [];
+        store.setState({
+          ...initialState,
+          [COMIC_FILE_LIST_FEATURE_KEY]: {
+            ...initialComicFileListState,
+            loading: false,
+            groups: GROUPS
+          }
+        });
+      });
+
+      it('updates the data', () => {
+        expect(component.dataSource.data).not.toEqual([]);
+      });
+    });
+
+    describe('when a current path is invalid', () => {
+      beforeEach(() => {
+        component.currentPath = GROUPS[0].directory.substring(1);
+        component.dataSource.data = [];
+        store.setState({
+          ...initialState,
+          [COMIC_FILE_LIST_FEATURE_KEY]: {
+            ...initialComicFileListState,
+            loading: false,
+            groups: GROUPS
+          }
+        });
+      });
+
+      it('updates the data', () => {
+        expect(component.dataSource.data).toEqual([]);
+      });
+    });
+
+    describe('when no current path is set', () => {
+      beforeEach(() => {
+        component.currentPath = null;
+        component.dataSource.data = [];
+        store.setState({
+          ...initialState,
+          [COMIC_FILE_LIST_FEATURE_KEY]: {
+            ...initialComicFileListState,
+            loading: false,
+            files: FILES
+          }
+        });
+      });
+
+      it('updates the data', () => {
+        expect(component.dataSource.data).not.toEqual([]);
       });
     });
   });

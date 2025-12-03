@@ -1,20 +1,48 @@
 <div id="app-footer" class="cx-horizontal-container mat-toolbar mat-primary">
-  <div *ngIf="!!user" class="cx-grow-75p">
-    <span class="cx-text-nowrap cx-padding-left-15">
-      {{
-        "app.system-status"
-          | translate
-            : {
-                unscrapedCount: unscrapedCount,
-                comicCount: comicCount,
-                readCount: readCount,
-                selectedCount: selectedCount,
-                deletedCount: deletedCount,
-                batchJobs: batchJobs
-              }
-      }}
-    </span>
-  </div>
+  @if (!!user) {
+    <div class="cx-grow-75p">
+      <span class="cx-text-nowrap cx-padding-left-15">
+        <a routerLink="/library/all">
+          {{
+            "app.system-status.comic-count" | translate: { count: comicCount }
+          }}
+        </a>
+        |
+        <a routerLink="/library/unscraped">
+          {{
+            "app.system-status.unscraped-count"
+              | translate: { count: unscrapedCount }
+          }}
+        </a>
+        |
+        <a routerLink="/library/unread">
+          {{ "app.system-status.read-count" | translate: { count: readCount } }}
+        </a>
+        |
+        <a routerLink="/library/selected">
+          {{
+            "app.system-status.selected-count"
+              | translate: { count: selectedCount }
+          }}
+        </a>
+        |
+        <a routerLink="/library/deleted">
+          {{
+            "app.system-status.deleted-count"
+              | translate: { count: deletedCount }
+          }}
+        </a>
+        @if (isAdmin) {
+          |
+          <a routerLink="/admin/processes">
+            {{
+              "app.system-status.batch-jobs" | translate: { count: batchJobs }
+            }}
+          </a>
+        }
+      </span>
+    </div>
+  }
   <div class="cx-grow-25p">
     <span class="cx-text-nowrap cx-padding-right-15">
       Copyright &copy; 2017-2025,

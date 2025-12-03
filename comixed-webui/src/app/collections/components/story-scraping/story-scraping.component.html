@@ -9,8 +9,12 @@
     "
     (click)="skipCache = !skipCache"
   >
-    <mat-icon *ngIf="skipCache">block</mat-icon>
-    <mat-icon *ngIf="!skipCache">remove_circle_outline</mat-icon>
+    @if (skipCache) {
+      <mat-icon>block</mat-icon>
+    }
+    @if (!skipCache) {
+      <mat-icon>remove_circle_outline</mat-icon>
+    }
   </button>
 
   <button
@@ -42,12 +46,11 @@
               formControlName="metadataSource"
               [value]="metadataSource?.metadataSourceId"
             >
-              <mat-option
-                *ngFor="let source of metadataSources"
-                [value]="source.metadataSourceId"
-              >
-                {{ source.name }}
-              </mat-option>
+              @for (source of metadataSources; track source) {
+                <mat-option [value]="source.metadataSourceId">
+                  {{ source.name }}
+                </mat-option>
+              }
             </mat-select>
             <input matInput hidden />
           </mat-form-field>
@@ -76,12 +79,11 @@
               {{ "story-scraping.label.max-records" | translate }}
             </mat-label>
             <mat-select formControlName="maxRecords">
-              <mat-option
-                *ngFor="let option of maxRecordsOptions"
-                [value]="option.value"
-              >
-                {{ option.label | translate }}
-              </mat-option>
+              @for (option of maxRecordsOptions; track option) {
+                <mat-option [value]="option.value">
+                  {{ option.label | translate }}
+                </mat-option>
+              }
             </mat-select>
             <input matInput hidden />
           </mat-form-field>
@@ -99,22 +101,24 @@
       </mat-card>
     </form>
 
-    <div *ngIf="imageUrl?.length > 0" class="cx-width-100">
-      <mat-card>
-        <mat-card-title class="cx-align-content-center cx-text-nowrap">
-          {{ imageTitle }}
-        </mat-card-title>
-        <mat-card-content>
-          <img
-            loading="lazy"
-            [src]="imageUrl"
-            [alt]="imageUrl"
-            width="100%"
-            height="auto"
-          />
-        </mat-card-content>
-      </mat-card>
-    </div>
+    @if (imageUrl?.length > 0) {
+      <div class="cx-width-100">
+        <mat-card>
+          <mat-card-title class="cx-align-content-center cx-text-nowrap">
+            {{ imageTitle }}
+          </mat-card-title>
+          <mat-card-content>
+            <img
+              loading="lazy"
+              [src]="imageUrl"
+              [alt]="imageUrl"
+              width="100%"
+              height="auto"
+            />
+          </mat-card-content>
+        </mat-card>
+      </div>
+    }
   </div>
 
   <div id="story-candidate-list-container" class="cx-grow-1">

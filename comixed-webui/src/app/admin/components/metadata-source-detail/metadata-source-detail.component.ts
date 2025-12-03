@@ -16,10 +16,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, Inject, Input } from '@angular/core';
+import { Component, inject, Input } from '@angular/core';
 import { MetadataSource } from '@app/comic-metadata/models/metadata-source';
 import {
   AbstractControl,
+  ReactiveFormsModule,
   UntypedFormArray,
   UntypedFormBuilder,
   UntypedFormGroup,
@@ -30,25 +31,59 @@ import { Store } from '@ngrx/store';
 import { MetadataSourceProperty } from '@app/comic-metadata/models/metadata-source-property';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ConfirmationService } from '@tragically-slick/confirmation';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { saveMetadataSource } from '@app/comic-metadata/actions/metadata-source.actions';
+import {
+  MatCard,
+  MatCardActions,
+  MatCardContent,
+  MatCardTitle
+} from '@angular/material/card';
+import {
+  MatError,
+  MatFormField,
+  MatLabel,
+  MatPrefix
+} from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatCheckbox } from '@angular/material/checkbox';
+import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatButton } from '@angular/material/button';
 
 @Component({
   selector: 'cx-metadata-source-detail',
   templateUrl: './metadata-source-detail.component.html',
-  styleUrls: ['./metadata-source-detail.component.scss']
+  styleUrls: ['./metadata-source-detail.component.scss'],
+  imports: [
+    ReactiveFormsModule,
+    MatCard,
+    MatCardTitle,
+    MatCardContent,
+    MatFormField,
+    MatLabel,
+    MatInput,
+    MatError,
+    MatCheckbox,
+    MatIcon,
+    MatPrefix,
+    MatTooltip,
+    MatCardActions,
+    MatButton,
+    TranslateModule
+  ]
 })
 export class MetadataSourceDetailComponent {
   sourceForm: UntypedFormGroup;
 
-  constructor(
-    private logger: LoggerService,
-    private store: Store<any>,
-    private formBuilder: UntypedFormBuilder,
-    private confirmationService: ConfirmationService,
-    private translateService: TranslateService,
-    @Inject(MAT_DIALOG_DATA) public data: { source: MetadataSource }
-  ) {
+  logger = inject(LoggerService);
+  store = inject(Store);
+  formBuilder = inject(UntypedFormBuilder);
+  confirmationService = inject(ConfirmationService);
+  translateService = inject(TranslateService);
+  data = inject<{ source: MetadataSource }>(MAT_DIALOG_DATA);
+
+  constructor() {
     this.sourceForm = this.formBuilder.group({
       name: [
         '',

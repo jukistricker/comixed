@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import { Store } from '@ngrx/store';
 import { Subscription } from 'rxjs';
@@ -34,14 +34,16 @@ import {
   loadBatchProcessList,
   setBatchProcessDetail
 } from '@app/admin/actions/batch-processes.actions';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TitleService } from '@app/core/services/title.service';
+import { DatePipe, KeyValuePipe } from '@angular/common';
 
 @Component({
   selector: 'cx-batch-process-detail-page',
   templateUrl: './batch-process-detail-page.component.html',
-  styleUrls: ['./batch-process-detail-page.component.scss']
+  styleUrls: ['./batch-process-detail-page.component.scss'],
+  imports: [DatePipe, KeyValuePipe, TranslateModule]
 })
 export class BatchProcessDetailPageComponent implements OnInit, OnDestroy {
   paramSubscription: Subscription;
@@ -54,15 +56,15 @@ export class BatchProcessDetailPageComponent implements OnInit, OnDestroy {
   detail: BatchProcessDetail;
   messagingStarted = false;
 
-  constructor(
-    private logger: LoggerService,
-    private store: Store<any>,
-    private activatedRoute: ActivatedRoute,
-    private router: Router,
-    private webSocketService: WebSocketService,
-    private translateService: TranslateService,
-    private titleService: TitleService
-  ) {
+  logger = inject(LoggerService);
+  store = inject(Store);
+  activatedRoute = inject(ActivatedRoute);
+  router = inject(Router);
+  webSocketService = inject(WebSocketService);
+  titleService = inject(TitleService);
+  private translateService = inject(TranslateService);
+
+  constructor() {
     this.paramSubscription = this.activatedRoute.params.subscribe(params => {
       this.jobId = +params.jobId;
       this.logger.debug('Job id:', this.jobId);

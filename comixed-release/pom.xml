@@ -6,58 +6,58 @@
   <parent>
     <groupId>org.comixedproject</groupId>
     <artifactId>comixed</artifactId>
-    <version>3.0-SNAPSHOT</version>
+    <version>3.1-SNAPSHOT</version>
     <relativePath>..</relativePath>
   </parent>
   <groupId>org.comixedproject</groupId>
   <artifactId>comixed-release</artifactId>
-  <version>3.0-SNAPSHOT</version>
+  <version>3.1-SNAPSHOT</version>
   <name>comixed-release</name>
   <url>http://maven.apache.org</url>
   <properties>
     <sonar.skip>true</sonar.skip>
-    <winsw.version>2.9.0</winsw.version>
+    <winsw.version>1.9</winsw.version>
   </properties>
   <dependencies>
     <dependency>
       <groupId>org.comixedproject</groupId>
       <artifactId>comixed-model</artifactId>
-      <version>3.0-SNAPSHOT</version>
+      <version>3.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.comixedproject</groupId>
       <artifactId>comixed-repositories</artifactId>
-      <version>3.0-SNAPSHOT</version>
+      <version>3.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.comixedproject</groupId>
       <artifactId>comixed-adaptors</artifactId>
-      <version>3.0-SNAPSHOT</version>
+      <version>3.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.comixedproject</groupId>
       <artifactId>comixed-metadata</artifactId>
-      <version>3.0-SNAPSHOT</version>
+      <version>3.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.comixedproject</groupId>
       <artifactId>comixed-services</artifactId>
-      <version>3.0-SNAPSHOT</version>
+      <version>3.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.comixedproject</groupId>
       <artifactId>comixed-plugins</artifactId>
-      <version>3.0-SNAPSHOT</version>
+      <version>3.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.comixedproject</groupId>
       <artifactId>comixed-rest</artifactId>
-      <version>3.0-SNAPSHOT</version>
+      <version>3.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.comixedproject</groupId>
       <artifactId>comixed-app</artifactId>
-      <version>3.0-SNAPSHOT</version>
+      <version>3.1-SNAPSHOT</version>
     </dependency>
   </dependencies>
   <build>
@@ -96,11 +96,6 @@
               <outputDirectory>${project.build.directory}/lib</outputDirectory>
             </configuration>
           </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
           <execution>
             <id>winsw</id>
             <phase>generate-resources</phase>

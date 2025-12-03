@@ -45,7 +45,9 @@
       "imprint": "Imprint",
       "issue-details": "Issue Details",
       "issue-number": "Issue #",
+      "last-modified-date": "Last Modified",
       "last-read-date": "Last Read",
+      "last-scraped-date": "Metadata Last Modified",
       "locations": "Locations In This Issue ({count})",
       "metadata-load-limit": "Maximum Records",
       "metadata-source": "Metadata Source",
@@ -107,6 +109,7 @@
       "state-ADDED": "Unchanged",
       "state-CHANGED": "Changed",
       "state-DELETED": "Marked For Deletion",
+      "state-DISCOVERED": "Discovered",
       "state-REMOVED": "Removed",
       "state-STABLE": "Unchanged",
       "state-UNPROCESSED": "Unprocessed"
@@ -183,7 +186,20 @@
       "dimensions": "Dimensions",
       "filename": "Filename",
       "page-number": "Page #",
+      "page-type": "Type",
       "thumbnail": "Thumbnail"
+    },
+    "text": {
+      "FRONT_COVER": "Front Cover",
+      "BACK_COVER": "Back Cover",
+      "INNER_COVER": "Inner Cover",
+      "ROUNDUP": "Roundup",
+      "EDITORIAL": "Editorial",
+      "LETTERS": "Letters",
+      "ADVERTISEMENT": "Advertisement",
+      "PREVIEW": "Preview",
+      "STORY": "Story",
+      "OTHER": "Other"
     },
     "update-page-deletion": {
       "confirmation-message": "Are you sure you want to {deleted, select, true{mark} other{unmark}} this page?",

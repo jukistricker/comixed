@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, Input } from '@angular/core';
+import { Component, inject, Input } from '@angular/core';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import { Store } from '@ngrx/store';
 import { User } from '@app/user/models/user';
@@ -24,11 +24,15 @@ import { selectLibraryState } from '@app/library/selectors/library.selectors';
 import { selectComicBookSelectionState } from '@app/comic-books/selectors/comic-book-selection.selectors';
 import { Subscription } from 'rxjs';
 import { selectBatchProcessList } from '@app/admin/selectors/batch-processes.selectors';
+import { TranslateModule } from '@ngx-translate/core';
+import { isAdmin } from '@app/user/user.functions';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'cx-footer',
   templateUrl: './footer.component.html',
-  styleUrls: ['./footer.component.scss']
+  styleUrls: ['./footer.component.scss'],
+  imports: [RouterModule, TranslateModule]
 })
 export class FooterComponent {
   libraryStateSubscription: Subscription;
@@ -41,7 +45,8 @@ export class FooterComponent {
   deletedCount = 0;
   batchJobs = 0;
 
-  constructor(private logger: LoggerService, private store: Store<any>) {}
+  logger = inject(LoggerService);
+  store = inject(Store<any>);
 
   private _user: User = null;
 
@@ -76,5 +81,9 @@ export class FooterComponent {
       this.jobsSubscription?.unsubscribe();
       this.readCount = 0;
     }
+  }
+
+  get isAdmin(): boolean {
+    return isAdmin(this.user);
   }
 }

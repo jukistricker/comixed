@@ -21,6 +21,7 @@ import {
   Component,
   ElementRef,
   HostListener,
+  inject,
   Input,
   ViewChild
 } from '@angular/core';
@@ -33,11 +34,25 @@ import { LibraryState } from '@app/library/reducers/library.reducer';
 import { RemoteLibrarySegmentState } from '@app/library/models/net/remote-library-segment-state';
 import * as _ from 'lodash';
 import { comicTagTypeFromString } from '@app/comic-books/models/comic-tag-type';
+import { BarChartModule } from '@swimlane/ngx-charts';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { AsyncPipe } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'cx-collections-chart',
   templateUrl: './collections-chart.component.html',
-  styleUrls: ['./collections-chart.component.scss']
+  styleUrls: ['./collections-chart.component.scss'],
+  imports: [
+    BarChartModule,
+    MatFormField,
+    MatLabel,
+    MatSelect,
+    MatOption,
+    AsyncPipe,
+    TranslateModule
+  ]
 })
 export class CollectionsChartComponent implements AfterViewInit {
   @ViewChild('container') container: ElementRef;
@@ -47,7 +62,8 @@ export class CollectionsChartComponent implements AfterViewInit {
   chartHeight$ = new BehaviorSubject<number>(0);
   chartWidth$ = new BehaviorSubject<number>(0);
 
-  constructor(private logger: LoggerService, private router: Router) {}
+  logger = inject(LoggerService);
+  router = inject(Router);
 
   private _libraryState: LibraryState = null;
 

@@ -21,6 +21,7 @@ package org.comixedproject.model.comicbooks;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
+import java.util.Date;
 import java.util.Objects;
 import lombok.*;
 import org.comixedproject.model.metadata.MetadataSource;
@@ -65,6 +66,14 @@ public class ComicMetadataSource {
   @Setter
   @NonNull
   private String referenceId;
+
+  @Column(name = "last_scraped_date", nullable = false, updatable = true)
+  @JsonProperty("lastScrapedDate")
+  @JsonView({View.ComicListView.class})
+  @Getter
+  @Setter
+  @NonNull
+  private Date lastScrapedDate;
 
   @Override
   public boolean equals(final Object o) {

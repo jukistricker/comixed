@@ -34,9 +34,13 @@ import { LoggerModule } from '@angular-ru/cdk/logger';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { LoadComicFilesResponse } from '@app/library/models/net/load-comic-files-response';
 import {
-  loadComicFileListSuccess,
+  loadComicFileListFailure,
   loadComicFileLists,
-  loadComicFileListFailure
+  loadComicFileListSuccess,
+  loadComicFilesFromSession,
+  toggleComicFileSelections,
+  toggleComicFileSelectionsFailure,
+  toggleComicFileSelectionsSuccess
 } from '@app/comic-files/actions/comic-file-list.actions';
 import { saveUserPreference } from '@app/user/actions/user.actions';
 import {
@@ -58,6 +62,9 @@ describe('ComicFileListEffects', () => {
       files: [COMIC_FILE_2]
     }
   ];
+  const FILENAME = COMIC_FILE_1.filename;
+  const SELECTED = Math.random() > 0.5;
+  const SINGLE = Math.random() > 0.5;
 
   let actions$: Observable<any>;
   let effects: ComicFileListEffects;
@@ -77,8 +84,14 @@ describe('ComicFileListEffects', () => {
         {
           provide: ComicImportService,
           useValue: {
+            loadComicFilesFromSession: jasmine.createSpy(
+              'ComicFileService.loadComicFilesFromSession()'
+            ),
             loadComicFiles: jasmine.createSpy(
               'ComicFileService.loadComicFiles()'
+            ),
+            toggleComicFileSelections: jasmine.createSpy(
+              'ComicFileService.toggleComicFileSelections()'
             ),
             sendComicFiles: jasmine.createSpy(
               'ComicFileService.sendComicFiles()'
@@ -99,6 +112,49 @@ describe('ComicFileListEffects', () => {
 
   it('should be created', () => {
     expect(effects).toBeTruthy();
+  });
+
+  describe('loading the comic files from the user session', () => {
+    it('fires an action on success', () => {
+      const serviceResponse = { groups: GROUPS } as LoadComicFilesResponse;
+      const action = loadComicFilesFromSession();
+      const outcome = loadComicFileListSuccess({ groups: GROUPS });
+
+      actions$ = hot('-a', { a: action });
+      comicImportService.loadComicFilesFromSession.and.returnValue(
+        of(serviceResponse)
+      );
+
+      const expected = hot('-b', { b: outcome });
+      expect(effects.loadComicFilesFromSession$).toBeObservable(expected);
+    });
+
+    it('fires an action on service failure', () => {
+      const serviceResponse = new HttpErrorResponse({});
+      const action = loadComicFilesFromSession();
+      const outcome = loadComicFileListFailure();
+
+      actions$ = hot('-a', { a: action });
+      comicImportService.loadComicFilesFromSession.and.returnValue(
+        throwError(serviceResponse)
+      );
+
+      const expected = hot('-b', { b: outcome });
+      expect(effects.loadComicFilesFromSession$).toBeObservable(expected);
+      expect(alertService.error).toHaveBeenCalledWith(jasmine.any(String));
+    });
+
+    it('fires an action on general failure', () => {
+      const action = loadComicFilesFromSession();
+      const outcome = loadComicFileListFailure();
+
+      actions$ = hot('-a', { a: action });
+      comicImportService.loadComicFilesFromSession.and.throwError('expected');
+
+      const expected = hot('-(b|)', { b: outcome });
+      expect(effects.loadComicFilesFromSession$).toBeObservable(expected);
+      expect(alertService.error).toHaveBeenCalledWith(jasmine.any(String));
+    });
   });
 
   describe('loading comic files', () => {
@@ -158,6 +214,75 @@ describe('ComicFileListEffects', () => {
 
       const expected = hot('-(b|)', { b: outcome });
       expect(effects.loadComicFiles$).toBeObservable(expected);
+      expect(alertService.error).toHaveBeenCalledWith(jasmine.any(String));
+    });
+  });
+
+  describe('toggling comic file selections', () => {
+    it('fires an action on success', () => {
+      const serviceResponse = { groups: GROUPS } as LoadComicFilesResponse;
+      const action = toggleComicFileSelections({
+        filename: FILENAME,
+        selected: SELECTED,
+        single: SINGLE
+      });
+      const outcome = toggleComicFileSelectionsSuccess({ groups: GROUPS });
+
+      actions$ = hot('-a', { a: action });
+      comicImportService.toggleComicFileSelections
+        .withArgs({
+          filename: FILENAME,
+          selected: SELECTED,
+          single: SINGLE
+        })
+        .and.returnValue(of(serviceResponse));
+
+      const expected = hot('-b', { b: outcome });
+      expect(effects.toggleComicFileSelections$).toBeObservable(expected);
+    });
+
+    it('fires an action on service failure', () => {
+      const serviceResponse = new HttpErrorResponse({});
+      const action = toggleComicFileSelections({
+        filename: FILENAME,
+        selected: SELECTED,
+        single: SINGLE
+      });
+      const outcome = toggleComicFileSelectionsFailure();
+
+      actions$ = hot('-a', { a: action });
+      comicImportService.toggleComicFileSelections
+        .withArgs({
+          filename: FILENAME,
+          selected: SELECTED,
+          single: SINGLE
+        })
+        .and.returnValue(throwError(() => serviceResponse));
+
+      const expected = hot('-b', { b: outcome });
+      expect(effects.toggleComicFileSelections$).toBeObservable(expected);
+      expect(alertService.error).toHaveBeenCalledWith(jasmine.any(String));
+    });
+
+    it('fires an action on general failure', () => {
+      const action = toggleComicFileSelections({
+        filename: FILENAME,
+        selected: SELECTED,
+        single: SINGLE
+      });
+      const outcome = toggleComicFileSelectionsFailure();
+
+      actions$ = hot('-a', { a: action });
+      comicImportService.toggleComicFileSelections
+        .withArgs({
+          filename: FILENAME,
+          selected: SELECTED,
+          single: SINGLE
+        })
+        .and.throwError('expected');
+
+      const expected = hot('-(b|)', { b: outcome });
+      expect(effects.toggleComicFileSelections$).toBeObservable(expected);
       expect(alertService.error).toHaveBeenCalledWith(jasmine.any(String));
     });
   });

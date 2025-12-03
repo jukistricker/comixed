@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import { HttpClient } from '@angular/common/http';
 import { Observable, Subscription } from 'rxjs';
@@ -37,7 +37,6 @@ import {
   LOAD_COMICS_BY_ID_URL,
   LOAD_COMICS_FOR_COLLECTION_URL,
   LOAD_COMICS_FOR_READING_LIST_URL,
-  LOAD_DUPLICATE_COMICS_URL,
   LOAD_READ_COMICS_URL,
   LOAD_SELECTED_COMICS_URL,
   LOAD_UNREAD_COMICS_URL
@@ -48,7 +47,6 @@ import { LoadComicsByIdRequest } from '@app/comic-books/models/net/load-comics-b
 import { LoadComicsForCollectionRequest } from '@app/comic-books/models/net/load-comics-for-collection-request';
 import { LoadComicsByReadStateRequest } from '@app/comic-books/models/net/load-comics-by-read-state-request';
 import { LoadComicsForListRequest } from '@app/comic-books/models/net/load-comics-for-list-request';
-import { LoadDuplicateComicsRequest } from '@app/comic-books/models/net/load-duplicate-comics-request';
 import { ComicDetail } from '@app/comic-books/models/comic-detail';
 import { DisplayableComic } from '@app/comic-books/models/displayable-comic';
 import {
@@ -64,12 +62,12 @@ export class DisplayableComicService {
   updateSubscription: Subscription;
   removalSubscription: Subscription;
 
-  constructor(
-    private logger: LoggerService,
-    private store: Store<any>,
-    private webSocketService: WebSocketService,
-    private http: HttpClient
-  ) {
+  logger = inject(LoggerService);
+  store = inject(Store);
+  webSocketService = inject(WebSocketService);
+  http = inject(HttpClient);
+
+  constructor() {
     this.store.select(selectMessagingState).subscribe(state => {
       if (state.started && !this.updateSubscription) {
         this.logger.trace('Subscribing to comic list updates');
@@ -236,27 +234,9 @@ export class DisplayableComicService {
     );
   }
 
-  loadDuplicateComics(args: {
-    sortDirection: string;
-    pageIndex: number;
-    pageSize: number;
-    sortBy: string;
-  }): Observable<any> {
-    this.logger.debug(
-      'Loading duplicate comic book details for reading list:',
-      args
-    );
-    return this.http.post(interpolate(LOAD_DUPLICATE_COMICS_URL), {
-      pageSize: args.pageSize,
-      pageIndex: args.pageIndex,
-      sortBy: args.sortBy,
-      sortDirection: args.sortDirection
-    } as LoadDuplicateComicsRequest);
-  }
-
   private doConvertToDisplayableComic(detail: ComicDetail): DisplayableComic {
     return {
-      comicBookId: detail.comicId,
+      comicBookId: detail.comicBookId,
       comicDetailId: detail.comicDetailId,
       archiveType: detail.archiveType,
       comicState: detail.comicState,

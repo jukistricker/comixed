@@ -71,19 +71,10 @@ import { EditMultipleComicsComponent } from './components/edit-multiple-comics/e
 import { LibraryEffects } from '@app/library/effects/library.effects';
 import { ComicBookListComponent } from './components/comic-book-list/comic-book-list.component';
 import { FlexLayoutModule } from '@angular-ru/cdk/flex-layout';
+import { duplicateComicsFeature } from '@app/library/reducers/duplicate-comics.reducer';
+import { DuplicateComicsEffects } from '@app/library/effects/duplicate-comics.effects';
 
 @NgModule({
-  declarations: [
-    LibraryPageComponent,
-    SelectedComicsComponent,
-    ComicDetailsDialogComponent,
-    ArchiveTypePipe,
-    DuplicatePageListPageComponent,
-    ComicDetailListDialogComponent,
-    DuplicatePageDetailPageComponent,
-    EditMultipleComicsComponent,
-    ComicBookListComponent
-  ],
   providers: [],
   imports: [
     CommonModule,
@@ -93,6 +84,7 @@ import { FlexLayoutModule } from '@angular-ru/cdk/flex-layout';
     ReactiveFormsModule,
     TranslateModule.forRoot(),
     StoreModule.forFeature(libraryFeature),
+    StoreModule.forFeature(duplicateComicsFeature),
     StoreModule.forFeature(duplicatePageListFeature),
     StoreModule.forFeature(duplicatePageDetailFeature),
     StoreModule.forFeature(rescanComicBooksFeature),
@@ -102,6 +94,7 @@ import { FlexLayoutModule } from '@angular-ru/cdk/flex-layout';
     StoreModule.forFeature(purgeLibraryFeature),
     EffectsModule.forFeature([
       LibraryEffects,
+      DuplicateComicsEffects,
       DuplicatePageListEffects,
       DuplicatePageDetailEffects,
       RescanComicsEffects,
@@ -131,7 +124,16 @@ import { FlexLayoutModule } from '@angular-ru/cdk/flex-layout';
     OverlayModule,
     MatMenuModule,
     MatProgressBarModule,
-    MatDividerModule
+    MatDividerModule,
+    LibraryPageComponent,
+    SelectedComicsComponent,
+    ComicDetailsDialogComponent,
+    ArchiveTypePipe,
+    DuplicatePageListPageComponent,
+    ComicDetailListDialogComponent,
+    DuplicatePageDetailPageComponent,
+    EditMultipleComicsComponent,
+    ComicBookListComponent
   ],
   exports: [CommonModule, CoreModule, ArchiveTypePipe]
 })

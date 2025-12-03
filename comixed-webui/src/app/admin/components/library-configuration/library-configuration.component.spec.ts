@@ -28,6 +28,7 @@ import { LoggerModule } from '@angular-ru/cdk/logger';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { MatDialogModule } from '@angular/material/dialog';
 import {
+  BATCH_COMIC_LOCK,
   BLOCKED_PAGES_ENABLED,
   CREATE_EXTERNAL_METADATA_FILES,
   LIBRARY_COMIC_RENAMING_RULE,
@@ -63,6 +64,7 @@ describe('LibraryConfigurationComponent', () => {
   const PAGE_RENAMING_RULE = 'The page renaming rule';
   const BLOCKED_PAGES_ENABLED_FEATURE_STATE = Math.random() > 0.5;
   const LIBRARY_STRIP_HTML_FROM_METADATA_STATE = Math.random() > 0.5;
+  const BATCH_COMIC_LOCK_STATE = Math.random() > 0.5;
   const OPTIONS = [
     {
       name: LIBRARY_COMIC_RENAMING_RULE,
@@ -107,6 +109,10 @@ describe('LibraryConfigurationComponent', () => {
     {
       name: LIBRARY_STRIP_HTML_FROM_METADATA,
       value: `${LIBRARY_STRIP_HTML_FROM_METADATA_STATE}`
+    },
+    {
+      name: BATCH_COMIC_LOCK,
+      value: `${BATCH_COMIC_LOCK_STATE}`
     }
   ];
   const initialState = {};
@@ -117,36 +123,34 @@ describe('LibraryConfigurationComponent', () => {
   let spyOnStoreDispatch: jasmine.Spy;
   let confirmationService: ConfirmationService;
 
-  beforeEach(
-    waitForAsync(() => {
-      TestBed.configureTestingModule({
-        declarations: [LibraryConfigurationComponent],
-        imports: [
-          NoopAnimationsModule,
-          FormsModule,
-          ReactiveFormsModule,
-          LoggerModule.forRoot(),
-          TranslateModule.forRoot(),
-          MatFormFieldModule,
-          MatInputModule,
-          MatExpansionModule,
-          MatDialogModule,
-          MatCheckboxModule,
-          MatToolbarModule,
-          MatIconModule,
-          MatTooltipModule
-        ],
-        providers: [provideMockStore({ initialState }), ConfirmationService]
-      }).compileComponents();
+  beforeEach(waitForAsync(() => {
+    TestBed.configureTestingModule({
+      imports: [
+        NoopAnimationsModule,
+        FormsModule,
+        ReactiveFormsModule,
+        LoggerModule.forRoot(),
+        TranslateModule.forRoot(),
+        MatFormFieldModule,
+        MatInputModule,
+        MatExpansionModule,
+        MatDialogModule,
+        MatCheckboxModule,
+        MatToolbarModule,
+        MatIconModule,
+        MatTooltipModule,
+        LibraryConfigurationComponent
+      ],
+      providers: [provideMockStore({ initialState }), ConfirmationService]
+    }).compileComponents();
 
-      fixture = TestBed.createComponent(LibraryConfigurationComponent);
-      component = fixture.componentInstance;
-      store = TestBed.inject(MockStore);
-      spyOnStoreDispatch = spyOn(store, 'dispatch');
-      confirmationService = TestBed.inject(ConfirmationService);
-      fixture.detectChanges();
-    })
-  );
+    fixture = TestBed.createComponent(LibraryConfigurationComponent);
+    component = fixture.componentInstance;
+    store = TestBed.inject(MockStore);
+    spyOnStoreDispatch = spyOn(store, 'dispatch');
+    confirmationService = TestBed.inject(ConfirmationService);
+    fixture.detectChanges();
+  }));
 
   it('should create', () => {
     expect(component).toBeTruthy();
@@ -254,6 +258,10 @@ describe('LibraryConfigurationComponent', () => {
             {
               name: LIBRARY_STRIP_HTML_FROM_METADATA,
               value: `${LIBRARY_STRIP_HTML_FROM_METADATA_STATE}`
+            },
+            {
+              name: BATCH_COMIC_LOCK,
+              value: `${BATCH_COMIC_LOCK_STATE}`
             }
           ]
         })

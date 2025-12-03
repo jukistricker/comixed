@@ -19,9 +19,7 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { LibraryPlugin } from '@app/library-plugins/models/library-plugin';
 
-@Pipe({
-  name: 'pluginTitle'
-})
+@Pipe({ name: 'pluginTitle' })
 export class PluginTitlePipe implements PipeTransform {
   transform(plugin: LibraryPlugin): string {
     return `${plugin?.name} v${plugin?.version}`;

@@ -25,12 +25,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import org.apache.commons.lang.math.RandomUtils;
 import org.comixedproject.adaptors.AdaptorException;
 import org.comixedproject.adaptors.comicbooks.ComicBookAdaptor;
 import org.comixedproject.adaptors.comicbooks.ComicFileAdaptor;
-import org.comixedproject.model.batch.ProcessComicBooksEvent;
+import org.comixedproject.model.batch.LoadComicBooksEvent;
 import org.comixedproject.model.comicbooks.ComicBook;
 import org.comixedproject.model.comicbooks.ComicDetail;
+import org.comixedproject.model.comicfiles.ComicFile;
 import org.comixedproject.model.comicfiles.ComicFileGroup;
 import org.comixedproject.model.metadata.FilenameMetadata;
 import org.comixedproject.service.comicbooks.ComicBookService;
@@ -61,6 +63,8 @@ class ComicFileServiceTest {
   private static final String TEST_VOLUME = "2024";
   private static final String TEST_ISSUE_NUMBER = "717";
   private static final Date TEST_COVER_DATE = new Date();
+  private static final boolean TEST_SELECTED = RandomUtils.nextBoolean();
+  private static final long TEST_FILE_SIZE = 867530L;
 
   @InjectMocks private ComicFileService service;
   @Mock private ComicBookAdaptor comicBookAdaptor;
@@ -77,6 +81,8 @@ class ComicFileServiceTest {
   @Captor private ArgumentCaptor<ComicBook> comicBookArgumentCaptor;
 
   private List<String> filenameList = new ArrayList<>();
+  private List<ComicFileGroup> comicFileGroupList = new ArrayList<>();
+  private ComicFileGroup comicFileGroup = new ComicFileGroup(TEST_ROOT_DIRECTORY);
 
   @BeforeEach
   public void setUp() throws AdaptorException {
@@ -91,6 +97,8 @@ class ComicFileServiceTest {
     Mockito.when(metadata.isFound()).thenReturn(false);
     Mockito.when(filenameScrapingRuleService.loadFilenameMetadata(Mockito.anyString()))
         .thenReturn(metadata);
+
+    comicFileGroupList.add(comicFileGroup);
   }
 
   @Test
@@ -198,11 +206,11 @@ class ComicFileServiceTest {
     Mockito.verify(comicDetailService, Mockito.times(1)).filenameFound(TEST_COMIC_ARCHIVE);
     Mockito.verify(comicStateHandler, Mockito.never()).fireEvent(Mockito.any(), Mockito.any());
     Mockito.verify(applicationEventPublisher, Mockito.times(1))
-        .publishEvent(ProcessComicBooksEvent.instance);
+        .publishEvent(LoadComicBooksEvent.instance);
   }
 
   @Test
-  void imporComicFiles() throws AdaptorException {
+  void importComicFiles() throws AdaptorException {
     Mockito.when(comicDetailService.filenameFound(Mockito.anyString())).thenReturn(false);
 
     service.importComicFiles(filenameList);
@@ -215,7 +223,7 @@ class ComicFileServiceTest {
     Mockito.verify(comicStateHandler, Mockito.times(1))
         .fireEvent(comicBook, ComicEvent.readyForProcessing);
     Mockito.verify(applicationEventPublisher, Mockito.times(1))
-        .publishEvent(ProcessComicBooksEvent.instance);
+        .publishEvent(LoadComicBooksEvent.instance);
   }
 
   @Test
@@ -233,7 +241,7 @@ class ComicFileServiceTest {
         .loadFilenameMetadata(Mockito.anyString());
     Mockito.verify(comicStateHandler, Mockito.never()).fireEvent(Mockito.any(), Mockito.any());
     Mockito.verify(applicationEventPublisher, Mockito.times(1))
-        .publishEvent(ProcessComicBooksEvent.instance);
+        .publishEvent(LoadComicBooksEvent.instance);
   }
 
   @Test
@@ -259,6 +267,61 @@ class ComicFileServiceTest {
     Mockito.verify(comicStateHandler, Mockito.times(1))
         .fireEvent(comicBook, ComicEvent.readyForProcessing);
     Mockito.verify(applicationEventPublisher, Mockito.times(1))
-        .publishEvent(ProcessComicBooksEvent.instance);
+        .publishEvent(LoadComicBooksEvent.instance);
+  }
+
+  @Test
+  void discoverComicFile() throws AdaptorException {
+    Mockito.when(comicDetailService.filenameFound(Mockito.anyString())).thenReturn(false);
+
+    service.discoverComicFile(TEST_ARCHIVE_FILENAME);
+
+    Mockito.verify(comicBookAdaptor, Mockito.times(1)).createComic(TEST_ARCHIVE_FILENAME);
+    Mockito.verify(filenameScrapingRuleService, Mockito.times(1))
+        .loadFilenameMetadata(TEST_ARCHIVE_FILENAME);
+    Mockito.verify(comicStateHandler, Mockito.times(1))
+        .fireEvent(comicBook, ComicEvent.comicDiscovered);
+  }
+
+  @Test
+  void toggleComicFileSelections_allFiles() {
+    comicFileGroup.getFiles().add(new ComicFile(TEST_COMIC_ARCHIVE, TEST_FILE_SIZE));
+    comicFileGroup.getFiles().get(0).setSelected(!TEST_SELECTED);
+
+    service.toggleComicFileSelections(comicFileGroupList, "", TEST_SELECTED, false);
+
+    assertEquals(TEST_SELECTED, comicFileGroup.getFiles().get(0).isSelected());
+  }
+
+  @Test
+  void toggleComicFileSelections_specificFile() {
+    comicFileGroup.getFiles().add(new ComicFile(TEST_COMIC_ARCHIVE, TEST_FILE_SIZE));
+    comicFileGroup.getFiles().get(0).setSelected(!TEST_SELECTED);
+
+    service.toggleComicFileSelections(comicFileGroupList, TEST_COMIC_ARCHIVE, TEST_SELECTED, true);
+
+    assertEquals(TEST_SELECTED, comicFileGroup.getFiles().get(0).isSelected());
+  }
+
+  @Test
+  void toggleComicFileSelections_specificDirectory() {
+    comicFileGroup.getFiles().add(new ComicFile(TEST_COMIC_ARCHIVE, TEST_FILE_SIZE));
+    comicFileGroup.getFiles().get(0).setSelected(!TEST_SELECTED);
+
+    service.toggleComicFileSelections(
+        comicFileGroupList, comicFileGroup.getDirectory(), TEST_SELECTED, false);
+
+    assertEquals(TEST_SELECTED, comicFileGroup.getFiles().get(0).isSelected());
+  }
+
+  @Test
+  void toggleComicFileSelections_specifiedFileNotFound() {
+    comicFileGroup.getFiles().add(new ComicFile(TEST_COMIC_ARCHIVE, TEST_FILE_SIZE));
+    comicFileGroup.getFiles().get(0).setSelected(!TEST_SELECTED);
+
+    service.toggleComicFileSelections(
+        comicFileGroupList, TEST_COMIC_ARCHIVE.substring(1), TEST_SELECTED, true);
+
+    assertEquals(!TEST_SELECTED, comicFileGroup.getFiles().get(0).isSelected());
   }
 }

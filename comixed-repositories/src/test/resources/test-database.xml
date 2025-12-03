@@ -38,7 +38,8 @@
     <comic_metadata_sources comic_metadata_source_id="1000"
                             comic_book_id="1000"
                             metadata_source_id="1000"
-                            reference_id="1000"/>
+                            reference_id="1000"
+                            last_scraped_date="[now]"/>
     <comic_books comic_book_id="1001"
                  file_contents_loaded="true"
                  update_metadata="true"
@@ -158,7 +159,8 @@
                    archive_type="CBZ"
                    sort_name="My First Comic"
                    description="This is a comicBook book's description"
-                   added_date="2017-06-16 15:21:00"/>
+                   added_date="2017-06-16 15:21:00"
+                   last_modified_date="2017-06-16 15:21:00"/>
     <comic_details comic_detail_id="2001"
                    comic_book_id="1001"
                    comic_state="STABLE"
@@ -173,7 +175,8 @@
                    issue_number="513"
                    description="This is a comicBook book's description"
                    cover_date="2017-02-28"
-                   added_date="2017-06-15 15:20:00"/>
+                   added_date="2017-06-15 15:20:00"
+                   last_modified_date="2017-06-15 15:20:00"/>
     <comic_details comic_detail_id="2002"
                    comic_book_id="1002"
                    comic_state="STABLE"
@@ -187,7 +190,8 @@
                    issue_number="512"
                    description="This is a comicBook book's description"
                    cover_date="2017-01-31"
-                   added_date="2017-06-14 15:20:00"/>
+                   added_date="2017-06-14 15:20:00"
+                   last_modified_date="2017-06-14 15:20:00"/>
     <comic_details comic_detail_id="2003"
                    comic_book_id="1003"
                    comic_state="STABLE"
@@ -201,7 +205,8 @@
                    issue_number="512"
                    description="This is a comicBook book's description"
                    cover_date="1965-01-31"
-                   added_date="2017-06-13 15:20:00"/>
+                   added_date="2017-06-13 15:20:00"
+                   last_modified_date="2017-06-13 15:20:00"/>
     <comic_details comic_detail_id="2004"
                    comic_book_id="1004"
                    comic_state="STABLE"
@@ -215,7 +220,8 @@
                    issue_number="514"
                    description="This is a comicBook book's description"
                    cover_date="2017-03-31"
-                   added_date="2017-06-15 15:20:00"/>
+                   added_date="2017-06-15 15:20:00"
+                   last_modified_date="2017-06-15 15:20:00"/>
     <comic_details comic_detail_id="2005"
                    comic_book_id="1005"
                    comic_state="STABLE"
@@ -229,7 +235,8 @@
                    issue_number="250"
                    description="This is a comicBook book's description"
                    cover_date="2016-02-28"
-                   added_date="2017-06-15 15:20:10"/>
+                   added_date="2017-06-15 15:20:10"
+                   last_modified_date="2017-06-15 15:20:10"/>
     <comic_details comic_detail_id="2006"
                    comic_book_id="1006"
                    comic_state="STABLE"
@@ -243,7 +250,8 @@
                    issue_number="249"
                    description="This is a comicBook book's description"
                    cover_date="2015-02-28"
-                   added_date="2017-06-15 15:20:20"/>
+                   added_date="2017-06-15 15:20:20"
+                   last_modified_date="2017-06-15 15:20:20"/>
     <comic_details comic_detail_id="2010"
                    comic_book_id="1010"
                    comic_state="DELETED"
@@ -257,7 +265,8 @@
                    issue_number="249"
                    description="This is a comicBook book's description"
                    cover_date="2015-02-28"
-                   added_date="2017-06-15 15:20:20"/>
+                   added_date="2017-06-15 15:20:20"
+                   last_modified_date="2017-06-15 15:20:20"/>
     <comic_details comic_detail_id="2020"
                    comic_book_id="1020"
                    comic_state="STABLE"
@@ -271,6 +280,7 @@
                    issue_number="19"
                    description="This is a comicBook book's description"
                    added_date="2019-04-24 09:35:00"
+                   last_modified_date="2019-04-24 09:35:00"
                    cover_date="2017-02-31"/>
     <comic_details comic_detail_id="2021"
                    comic_book_id="1021"
@@ -285,7 +295,8 @@
                    issue_number="19"
                    description="This is a comicBook book's description"
                    cover_date="2017-02-31"
-                   added_date="2019-04-24 09:36:00"/>
+                   added_date="2019-04-24 09:36:00"
+                   last_modified_date="2019-04-24 09:36:00"/>
     <comic_details comic_detail_id="3000"
                    comic_book_id="2000"
                    comic_state="STABLE"
@@ -299,7 +310,8 @@
                    issue_number="19"
                    description="This is a comicBook book's description"
                    cover_date="2017-02-31"
-                   added_date="2019-04-24 09:36:00"/>
+                   added_date="2019-04-24 09:36:00"
+                   last_modified_date="2019-04-24 09:36:00"/>
     <comic_tags comic_detail_id="2000"
                 tag_type="CHARACTER"
                 tag_value="Captain America"/>
@@ -380,7 +392,7 @@
                 tag_value="Prelude To Civil War II"/>
     <comic_pages comic_page_id="1000"
                  comic_book_id="1000"
-                 page_state="STABLE"
+                 page_type="FRONT_COVER"
                  filename="frontpage.jpg"
                  page_number="0"
                  file_hash="0123456789ABCDEF0123456789ABCDEF"
@@ -389,7 +401,7 @@
                  adding_to_cache="true"/>
     <comic_pages comic_page_id="1001"
                  comic_book_id="1000"
-                 page_state="STABLE"
+                 page_type="OTHER"
                  filename="page1.jpg"
                  page_number="1"
                  file_hash="F0123456789ABCDEF0123456789ABCDE"
@@ -398,7 +410,7 @@
                  adding_to_cache="true"/>
     <comic_pages comic_page_id="1002"
                  comic_book_id="1000"
-                 page_state="STABLE"
+                 page_type="STORY"
                  filename="page2.jpg"
                  page_number="2"
                  file_hash="EF0123456789ABCDEF0123456789ABCD"
@@ -407,7 +419,7 @@
                  adding_to_cache="false"/>
     <comic_pages comic_page_id="1003"
                  comic_book_id="1000"
-                 page_state="STABLE"
+                 page_type="BACK_COVER"
                  filename="page3.jpg"
                  page_number="3"
                  file_hash="DEF0123456789ABCDEF0123456789ABC"
@@ -416,7 +428,7 @@
                  adding_to_cache="false"/>
     <comic_pages comic_page_id="1004"
                  comic_book_id="1000"
-                 page_state="STABLE"
+                 page_type="INNER_COVER"
                  filename="backpage.jpg"
                  page_number="4"
                  file_hash="CDEF0123456789ABCDEF0123456789AB"
@@ -425,7 +437,7 @@
                  adding_to_cache="false"/>
     <comic_pages comic_page_id="2000"
                  comic_book_id="1001"
-                 page_state="STABLE"
+                 page_type="EDITORIAL"
                  filename="frontpage.jpg"
                  page_number="0"
                  file_hash="BCDEF0123456789ABCDEF0123456789A"
@@ -434,7 +446,7 @@
                  adding_to_cache="false"/>
     <comic_pages comic_page_id="2001"
                  comic_book_id="1001"
-                 page_state="STABLE"
+                 page_type="ROUNDUP"
                  filename="page1.jpg"
                  page_number="1"
                  file_hash="ABCDEF0123456789ABCDEF0123456789"
@@ -443,7 +455,7 @@
                  adding_to_cache="false"/>
     <comic_pages comic_page_id="2002"
                  comic_book_id="1001"
-                 page_state="STABLE"
+                 page_type="LETTERS"
                  filename="page2.jpg"
                  page_number="2"
                  file_hash="9ABCDEF0123456789ABCDEF012345678"
@@ -452,7 +464,7 @@
                  adding_to_cache="false"/>
     <comic_pages comic_page_id="2003"
                  comic_book_id="1001"
-                 page_state="STABLE"
+                 page_type="ADVERTISEMENT"
                  filename="backcover.jpg"
                  page_number="4"
                  file_hash="89ABCDEF0123456789ABCDEF01234567"
@@ -461,7 +473,7 @@
                  adding_to_cache="false"/>
     <comic_pages comic_page_id="2102"
                  comic_book_id="1001"
-                 page_state="STABLE"
+                 page_type="PREVIEW"
                  filename="frontpage.jpg"
                  page_number="1"
                  file_hash="789ABCDEF0123456789ABCDEF0123456"
@@ -470,7 +482,7 @@
                  adding_to_cache="false"/>
     <comic_pages comic_page_id="3000"
                  comic_book_id="1002"
-                 page_state="STABLE"
+                 page_type="OTHER"
                  filename="frontpage.jpg"
                  page_number="0"
                  file_hash="6789ABCDEF0123456789ABCDEF012345"
@@ -479,7 +491,7 @@
                  adding_to_cache="true"/>
     <comic_pages comic_page_id="3001"
                  comic_book_id="1002"
-                 page_state="DELETED"
+                 page_type="DELETED"
                  filename="page1.jpg"
                  page_number="1"
                  file_hash="56789ABCDEF0123456789ABCDEF01234"
@@ -488,7 +500,7 @@
                  adding_to_cache="true"/>
     <comic_pages comic_page_id="3002"
                  comic_book_id="1002"
-                 page_state="DELETED"
+                 page_type="DELETED"
                  filename="page1.jpg"
                  page_number="2"
                  file_hash="456789ABCDEF0123456789ABCDEF0123"
@@ -497,7 +509,7 @@
                  adding_to_cache="false"/>
     <comic_pages comic_page_id="3003"
                  comic_book_id="1002"
-                 page_state="DELETED"
+                 page_type="DELETED"
                  filename="backpage.jpg"
                  page_number="3"
                  file_hash="3456789ABCDEF0123456789ABCDEF012"
@@ -506,7 +518,7 @@
                  adding_to_cache="true"/>
     <comic_pages comic_page_id="3004"
                  comic_book_id="1003"
-                 page_state="STABLE"
+                 page_type="STORY"
                  filename="frontpage.jpg"
                  page_number="0"
                  file_hash="23456789ABCDEF0123456789ABCDEF01"
@@ -515,7 +527,7 @@
                  adding_to_cache="false"/>
     <comic_pages comic_page_id="3005"
                  comic_book_id="1003"
-                 page_state="STABLE"
+                 page_type="STORY"
                  filename="page1.jpg"
                  page_number="1"
                  file_hash="123456789ABCDEF0123456789ABCDEF0"
@@ -524,7 +536,7 @@
                  adding_to_cache="false"/>
     <comic_pages comic_page_id="3006"
                  comic_book_id="1003"
-                 page_state="STABLE"
+                 page_type="STORY"
                  filename="page2.jpg"
                  page_number="2"
                  file_hash="0123456789ABCDEF0123456789ABCDEF"
@@ -533,7 +545,7 @@
                  adding_to_cache="true"/>
     <comic_pages comic_page_id="3007"
                  comic_book_id="1003"
-                 page_state="STABLE"
+                 page_type="STORY"
                  filename="page3.jpg"
                  page_number="3"
                  width="1024"
@@ -541,7 +553,7 @@
                  adding_to_cache="false"/>
     <comic_pages comic_page_id="3008"
                  comic_book_id="1003"
-                 page_state="STABLE"
+                 page_type="STORY"
                  filename="backpage.jpg"
                  page_number="4"
                  file_hash="EF0123456789ABCDEF0123456789ABCD"

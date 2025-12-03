@@ -25,10 +25,11 @@ import java.util.List;
 import java.util.Optional;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.comixedproject.adaptors.AdaptorException;
 import org.comixedproject.adaptors.comicbooks.ComicBookAdaptor;
 import org.comixedproject.adaptors.comicbooks.ComicFileAdaptor;
-import org.comixedproject.model.batch.ProcessComicBooksEvent;
+import org.comixedproject.model.batch.LoadComicBooksEvent;
 import org.comixedproject.model.comicbooks.ComicBook;
 import org.comixedproject.model.comicfiles.ComicFile;
 import org.comixedproject.model.comicfiles.ComicFileGroup;
@@ -163,28 +164,75 @@ public class ComicFileService {
     for (int index = 0; index < filenames.size(); index++) {
       final String filename = filenames.get(index);
       if (!this.comicDetailService.filenameFound(filename)) {
-        try {
-          log.debug("Creating comicBook: filename={}", filename);
-          final ComicBook comicBook = this.comicBookAdaptor.createComic(filename);
-          log.trace("Scraping comicBook filename");
-          final FilenameMetadata metadata =
-              this.filenameScrapingRuleService.loadFilenameMetadata(
-                  comicBook.getComicDetail().getBaseFilename());
-          if (metadata.isFound()) {
-            log.trace("Scraping rule applied");
-            comicBook.getComicDetail().setSeries(metadata.getSeries());
-            comicBook.getComicDetail().setVolume(metadata.getVolume());
-            comicBook.getComicDetail().setIssueNumber(metadata.getIssueNumber());
-            comicBook.getComicDetail().setCoverDate(metadata.getCoverDate());
-          }
-          log.debug("Firing new comic book event: {}", filename);
-          this.comicStateHandler.fireEvent(comicBook, ComicEvent.readyForProcessing);
-        } catch (AdaptorException error) {
-          log.error("Failed to create comic for file: " + filename, error);
-        }
+        doImportComicFile(filename, ComicEvent.readyForProcessing);
       }
     }
     log.debug("Initiating processing");
-    this.applicationEventPublisher.publishEvent(ProcessComicBooksEvent.instance);
+    this.applicationEventPublisher.publishEvent(LoadComicBooksEvent.instance);
+  }
+
+  @Transactional
+  public void discoverComicFile(final String filename) {
+    log.debug("Adding discovered comic file: {}", filename);
+    this.doImportComicFile(filename, ComicEvent.comicDiscovered);
+  }
+
+  private void doImportComicFile(final String filename, final ComicEvent event) {
+    try {
+      log.debug("Creating comicBook: filename={}", filename);
+      final ComicBook comicBook = this.comicBookAdaptor.createComic(filename);
+      log.trace("Scraping comicBook filename");
+      final FilenameMetadata metadata =
+          this.filenameScrapingRuleService.loadFilenameMetadata(
+              comicBook.getComicDetail().getBaseFilename());
+      if (metadata.isFound()) {
+        log.trace("Scraping rule applied");
+        comicBook.getComicDetail().setSeries(metadata.getSeries());
+        comicBook.getComicDetail().setVolume(metadata.getVolume());
+        comicBook.getComicDetail().setIssueNumber(metadata.getIssueNumber());
+        comicBook.getComicDetail().setCoverDate(metadata.getCoverDate());
+      }
+      log.debug("Firing new comic book event: {}:{}", event, filename);
+      this.comicStateHandler.fireEvent(comicBook, event);
+    } catch (AdaptorException error) {
+      log.error("Failed to create comic for file: " + filename, error);
+    }
+  }
+
+  /**
+   * Toggles the selected state for comic files. If the single file flag is set then the filename is
+   * the file to toggole. Otherwise, it is the group of files to toggle.
+   *
+   * @param groups the comic file groups
+   * @param path the path
+   * @param selected the selected state
+   * @param single the single file flag
+   */
+  public void toggleComicFileSelections(
+      final List<ComicFileGroup> groups,
+      final String path,
+      final boolean selected,
+      final boolean single) {
+    if (StringUtils.isBlank(path)) {
+      log.debug("Toggling all comic files: selected={}", selected);
+      groups.forEach(group -> group.getFiles().forEach(file -> file.setSelected(selected)));
+    } else {
+      if (single) {
+        log.debug("Toggling file: {} selected={}", path, selected);
+        groups.forEach(
+            group ->
+                group.getFiles().stream()
+                    .filter(file -> file.getFilename().equals(path))
+                    .findFirst()
+                    .ifPresent(file -> file.setSelected(selected)));
+      } else {
+        final Optional<ComicFileGroup> group =
+            groups.stream().filter(entry -> entry.getDirectory().equals(path)).findFirst();
+        if (group.isPresent()) {
+          log.debug("Toggling all files in group: {} selected={}", path, selected);
+          group.get().getFiles().forEach(file -> file.setSelected(selected));
+        }
+      }
+    }
   }
 }

@@ -16,15 +16,49 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, Input } from '@angular/core';
-import { MatTableDataSource } from '@angular/material/table';
+import { Component, inject, Input } from '@angular/core';
+import {
+  MatTableDataSource,
+  MatTable,
+  MatColumnDef,
+  MatHeaderCellDef,
+  MatHeaderCell,
+  MatCellDef,
+  MatCell,
+  MatHeaderRowDef,
+  MatHeaderRow,
+  MatRowDef,
+  MatRow
+} from '@angular/material/table';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import { ComicDetail } from '@app/comic-books/models/comic-detail';
+import { MatTooltip } from '@angular/material/tooltip';
+import { RouterLink } from '@angular/router';
+import { DatePipe } from '@angular/common';
+import { ComicTitlePipe } from '@app/comic-books/pipes/comic-title.pipe';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'cx-comic-book-list',
   templateUrl: './comic-book-list.component.html',
-  styleUrls: ['./comic-book-list.component.scss']
+  styleUrls: ['./comic-book-list.component.scss'],
+  imports: [
+    MatTable,
+    MatColumnDef,
+    MatHeaderCellDef,
+    MatHeaderCell,
+    MatCellDef,
+    MatCell,
+    MatHeaderRowDef,
+    MatHeaderRow,
+    MatRowDef,
+    MatRow,
+    MatTooltip,
+    RouterLink,
+    DatePipe,
+    ComicTitlePipe,
+    TranslateModule
+  ]
 })
 export class ComicBookListComponent {
   @Input()
@@ -39,5 +73,5 @@ export class ComicBookListComponent {
     'store-date'
   ];
 
-  constructor(private logger: LoggerService) {}
+  logger = inject(LoggerService);
 }

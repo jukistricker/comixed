@@ -16,18 +16,43 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import { ComicContextMenuEvent } from '@app/comic-books/models/event/comic-context-menu-event';
 import { ComicSelectEvent } from '@app/comic-books/models/event/comic-select-event';
 import { UpdateComicInfoEvent } from '@app/comic-books/models/event/update-comic-info-event';
 import { ComicState } from '@app/comic-books/models/comic-state';
 import { ComicDetail } from '@app/comic-books/models/comic-detail';
+import {
+  MatCard,
+  MatCardTitle,
+  MatCardSubtitle,
+  MatCardContent
+} from '@angular/material/card';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatChipListbox, MatChip } from '@angular/material/chips';
+import { RouterLink } from '@angular/router';
+import { MatIcon } from '@angular/material/icon';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'cx-comic-detail-card',
   templateUrl: './comic-detail-card.component.html',
-  styleUrls: ['./comic-detail-card.component.scss']
+  styleUrls: ['./comic-detail-card.component.scss'],
+  imports: [
+    MatCard,
+    MatCardTitle,
+    MatTooltip,
+    MatCardSubtitle,
+    MatCardContent,
+    MatChipListbox,
+    MatChip,
+    RouterLink,
+    MatIcon,
+    MatProgressSpinner,
+    TranslateModule
+  ]
 })
 export class ComicDetailCardComponent {
   @Input() comic: ComicDetail;
@@ -49,7 +74,7 @@ export class ComicDetailCardComponent {
   @Output() showContextMenu = new EventEmitter<ComicContextMenuEvent>();
   @Output() updateComicInfo = new EventEmitter<UpdateComicInfoEvent>();
 
-  constructor(private logger: LoggerService) {}
+  logger = inject(LoggerService);
 
   get deleted(): boolean {
     return this.comic.comicState === ComicState.DELETED;

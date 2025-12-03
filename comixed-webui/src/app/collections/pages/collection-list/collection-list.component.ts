@@ -16,13 +16,25 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { Store } from '@ngrx/store';
-import { MatTableDataSource } from '@angular/material/table';
-import { TranslateService } from '@ngx-translate/core';
+import {
+  MatTableDataSource,
+  MatTable,
+  MatColumnDef,
+  MatHeaderCellDef,
+  MatHeaderCell,
+  MatCellDef,
+  MatCell,
+  MatHeaderRowDef,
+  MatHeaderRow,
+  MatRowDef,
+  MatRow
+} from '@angular/material/table';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { TitleService } from '@app/core/services/title.service';
 import { QueryParameterService } from '@app/core/services/query-parameter.service';
 import {
@@ -38,11 +50,34 @@ import {
   ComicTagType,
   comicTagTypeFromString
 } from '@app/comic-books/models/comic-tag-type';
+import { FilterTextFormComponent } from '../../components/filter-text-form/filter-text-form.component';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatSort, MatSortHeader } from '@angular/material/sort';
+import { AsyncPipe, DecimalPipe } from '@angular/common';
 
 @Component({
   selector: 'cx-collection-list',
   templateUrl: './collection-list.component.html',
-  styleUrls: ['./collection-list.component.scss']
+  styleUrls: ['./collection-list.component.scss'],
+  imports: [
+    FilterTextFormComponent,
+    MatPaginator,
+    MatTable,
+    MatSort,
+    MatColumnDef,
+    MatHeaderCellDef,
+    MatHeaderCell,
+    MatSortHeader,
+    MatCellDef,
+    MatCell,
+    MatHeaderRowDef,
+    MatHeaderRow,
+    MatRowDef,
+    MatRow,
+    AsyncPipe,
+    DecimalPipe,
+    TranslateModule
+  ]
 })
 export class CollectionListComponent implements OnInit, OnDestroy {
   paramSubscription: Subscription;
@@ -57,17 +92,16 @@ export class CollectionListComponent implements OnInit, OnDestroy {
 
   readonly displayedColumns = ['tag-value', 'comic-count'];
   langChangeSubscription: Subscription;
+  queryParameterService = inject(QueryParameterService);
+  logger = inject(LoggerService);
+  store = inject(Store);
+  activatedRoute = inject(ActivatedRoute);
+  router = inject(Router);
+  translateService = inject(TranslateService);
+  titleService = inject(TitleService);
   protected readonly filter = filter;
 
-  constructor(
-    private logger: LoggerService,
-    private store: Store<any>,
-    private activatedRoute: ActivatedRoute,
-    private router: Router,
-    private translateService: TranslateService,
-    private titleService: TitleService,
-    public queryParameterService: QueryParameterService
-  ) {
+  constructor() {
     this.paramSubscription = this.activatedRoute.params.subscribe(params => {
       this.routableTypeName = params.collectionType;
       this.collectionType = comicTagTypeFromString(this.routableTypeName);

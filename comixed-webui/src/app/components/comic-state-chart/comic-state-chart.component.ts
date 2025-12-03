@@ -21,6 +21,7 @@ import {
   Component,
   ElementRef,
   HostListener,
+  inject,
   Input,
   OnDestroy,
   ViewChild
@@ -28,15 +29,18 @@ import {
 import { ComicStateData } from '@app/models/ui/comic-state-data';
 import { ComicState } from '@app/comic-books/models/comic-state';
 import { LoggerService } from '@angular-ru/cdk/logger';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { BehaviorSubject, Subscription } from 'rxjs';
 import { LibraryState } from '@app/library/reducers/library.reducer';
 import { RemoteLibrarySegmentState } from '@app/library/models/net/remote-library-segment-state';
+import { BarChartModule } from '@swimlane/ngx-charts';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
   selector: 'cx-comic-state-chart',
   templateUrl: './comic-state-chart.component.html',
-  styleUrls: ['./comic-state-chart.component.scss']
+  styleUrls: ['./comic-state-chart.component.scss'],
+  imports: [BarChartModule, AsyncPipe, TranslateModule]
 })
 export class ComicStateChartComponent implements OnDestroy, AfterViewInit {
   @ViewChild('container') container: ElementRef;
@@ -47,10 +51,10 @@ export class ComicStateChartComponent implements OnDestroy, AfterViewInit {
   chartWidth$ = new BehaviorSubject<number>(0);
   comicStateMaxX = 0;
 
-  constructor(
-    private logger: LoggerService,
-    private translateService: TranslateService
-  ) {
+  logger = inject(LoggerService);
+  translateService = inject(TranslateService);
+
+  constructor() {
     this.logger.trace('Subscribing to language changes');
     this.langChangeSubscription =
       this.translateService.onDefaultLangChange.subscribe(() =>

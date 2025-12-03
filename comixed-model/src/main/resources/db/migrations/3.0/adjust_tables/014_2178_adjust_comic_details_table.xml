@@ -73,7 +73,7 @@
             </column>
 
             <column name="filename" type="varchar(768)">
-                <constraints nullable="false" unique="true"/>
+                <constraints nullable="false"/>
             </column>
 
             <column name="title" type="varchar(255)">
@@ -104,6 +104,9 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+
+        <addUniqueConstraint tableName="comic_details" columnNames="filename"
+                             constraintName="comic_details_unique_filename"/>
 
         <sql>INSERT INTO comic_details(comic_detail_id, comic_book_id, archive_type, comic_state, publisher, imprint,
                                        series, volume, issue_number, cover_date, store_date, added_date, filename,
@@ -208,6 +211,11 @@
         <createIndex tableName="comic_details" indexName="comic_detail_volume_idx">
             <column name="volume"/>
         </createIndex>
+
+        <sql dbms="postgresql">
+            SELECT SETVAL((SELECT PG_GET_SERIAL_SEQUENCE('"comic_details"', 'comic_detail_id')),
+                          (SELECT (MAX("comic_detail_id") + 1) FROM "comic_details"), FALSE);
+        </sql>
 
     </changeSet>
 </databaseChangeLog>

@@ -16,12 +16,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, OnDestroy } from '@angular/core';
+import { Component, inject, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { MessagingSubscription, WebSocketService } from '@app/messaging';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import { Store } from '@ngrx/store';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   createReadingList,
   loadReadingList,
@@ -37,10 +37,11 @@ import { ReadingList } from '@app/lists/models/reading-list';
 import {
   UntypedFormBuilder,
   UntypedFormGroup,
-  Validators
+  Validators,
+  ReactiveFormsModule
 } from '@angular/forms';
 import { filter } from 'rxjs/operators';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { removeSelectedComicBooksFromReadingList } from '@app/lists/actions/reading-list-entries.actions';
 import { selectMessagingState } from '@app/messaging/selectors/messaging.selectors';
 import {
@@ -68,11 +69,28 @@ import { selectComicList } from '@app/comic-books/selectors/comic-list.selectors
 import { DisplayableComic } from '@app/comic-books/models/displayable-comic';
 import { interpolate } from '@app/core';
 import { selectUser } from '@app/user/selectors/user.selectors';
+import { MatFabButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
+import { MatFormField } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { ComicListViewComponent } from '../../../comic-books/components/comic-list-view/comic-list-view.component';
 
 @Component({
   selector: 'cx-user-reading-list-page',
   templateUrl: './reading-list-detail-page.component.html',
-  styleUrls: ['./reading-list-detail-page.component.scss']
+  styleUrls: ['./reading-list-detail-page.component.scss'],
+  imports: [
+    MatFabButton,
+    RouterLink,
+    MatTooltip,
+    MatIcon,
+    ReactiveFormsModule,
+    MatFormField,
+    MatInput,
+    ComicListViewComponent,
+    TranslateModule
+  ]
 })
 export class ReadingListDetailPageComponent implements OnDestroy {
   dataSource = new MatTableDataSource<SelectableListItem<DisplayableComic>>([]);
@@ -96,18 +114,18 @@ export class ReadingListDetailPageComponent implements OnDestroy {
   comics: DisplayableComic[] = [];
   email: string | null = null;
 
-  constructor(
-    private logger: LoggerService,
-    private store: Store<any>,
-    private webSocketService: WebSocketService,
-    private activatedRoute: ActivatedRoute,
-    private router: Router,
-    private formBuilder: UntypedFormBuilder,
-    private confirmationService: ConfirmationService,
-    private translateService: TranslateService,
-    private titleService: TitleService,
-    private queryParameterService: QueryParameterService
-  ) {
+  logger = inject(LoggerService);
+  store = inject(Store);
+  webSocketService = inject(WebSocketService);
+  activatedRoute = inject(ActivatedRoute);
+  router = inject(Router);
+  formBuilder = inject(UntypedFormBuilder);
+  confirmationService = inject(ConfirmationService);
+  translateService = inject(TranslateService);
+  titleService = inject(TitleService);
+  queryParameterService = inject(QueryParameterService);
+
+  constructor() {
     this.logger.trace('Subscribing to parameter updates');
     this.paramsSubscription = this.activatedRoute.params.subscribe(params => {
       if (!!params.id) {

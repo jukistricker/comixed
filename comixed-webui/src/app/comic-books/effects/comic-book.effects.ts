@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import { TranslateService } from '@ngx-translate/core';
@@ -46,6 +46,12 @@ import { FileDownloadService } from '@app/core/services/file-download.service';
 
 @Injectable()
 export class ComicBookEffects {
+  logger = inject(LoggerService);
+  actions$ = inject(Actions);
+  comicService = inject(ComicBookService);
+  alertService = inject(AlertService);
+  translateService = inject(TranslateService);
+
   loadOne$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(loadComicBook),
@@ -76,34 +82,47 @@ export class ComicBookEffects {
       })
     );
   });
-
   saveOne$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(updateComicBook),
       tap(action => this.logger.debug('Effect: update comic:', action)),
       switchMap(action =>
-        this.comicService.updateOne({ comicBook: action.comicBook }).pipe(
-          tap(response => this.logger.debug('Response received:', response)),
-          tap(() =>
-            this.alertService.info(
-              this.translateService.instant(
-                'comic-book.save-changes.effect-success'
-              )
-            )
-          ),
-          map((response: ComicBook) =>
-            comicBookUpdated({ comicBook: response })
-          ),
-          catchError(error => {
-            this.logger.error('Service failure:', error);
-            this.alertService.error(
-              this.translateService.instant(
-                'comic-book.save-changes.effect-failure'
-              )
-            );
-            return of(updateComicBookFailed());
+        this.comicService
+          .updateOne({
+            comicBookId: action.comicBookId,
+            comicType: action.comicType,
+            publisher: action.publisher,
+            series: action.series,
+            volume: action.volume,
+            issueNumber: action.issueNumber,
+            imprint: action.imprint,
+            sortName: action.sortName,
+            title: action.title,
+            coverDate: action.coverDate,
+            storeDate: action.storeDate
           })
-        )
+          .pipe(
+            tap(response => this.logger.debug('Response received:', response)),
+            tap(() =>
+              this.alertService.info(
+                this.translateService.instant(
+                  'comic-book.save-changes.effect-success'
+                )
+              )
+            ),
+            map((response: ComicBook) =>
+              comicBookUpdated({ comicBook: response })
+            ),
+            catchError(error => {
+              this.logger.error('Service failure:', error);
+              this.alertService.error(
+                this.translateService.instant(
+                  'comic-book.save-changes.effect-failure'
+                )
+              );
+              return of(updateComicBookFailed());
+            })
+          )
       ),
       catchError(error => {
         this.logger.error('General failure:', error);
@@ -114,7 +133,6 @@ export class ComicBookEffects {
       })
     );
   });
-
   updatePageDeletion$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(updatePageDeletion),
@@ -160,7 +178,6 @@ export class ComicBookEffects {
       })
     );
   });
-
   savePageOrder$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(savePageOrder),
@@ -201,7 +218,7 @@ export class ComicBookEffects {
       })
     );
   });
-
+  fileDownloadService = inject(FileDownloadService);
   downloadComicBook$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(downloadComicBook),
@@ -235,13 +252,4 @@ export class ComicBookEffects {
       })
     );
   });
-
-  constructor(
-    private logger: LoggerService,
-    private actions$: Actions,
-    private comicService: ComicBookService,
-    private alertService: AlertService,
-    private translateService: TranslateService,
-    private fileDownloadService: FileDownloadService
-  ) {}
 }

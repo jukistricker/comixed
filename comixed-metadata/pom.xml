@@ -6,33 +6,33 @@
   <parent>
     <groupId>org.comixedproject</groupId>
     <artifactId>comixed</artifactId>
-    <version>3.0-SNAPSHOT</version>
+    <version>3.1-SNAPSHOT</version>
   </parent>
   <groupId>org.comixedproject</groupId>
   <artifactId>comixed-metadata</artifactId>
-  <version>3.0-SNAPSHOT</version>
+  <version>3.1-SNAPSHOT</version>
   <name>comixed-metadata</name>
   <url>http://www.comixedproject.org</url>
   <dependencies>
     <dependency>
       <groupId>org.springframework.plugin</groupId>
       <artifactId>spring-plugin-core</artifactId>
-      <version>${spring-plugin.version}</version>
+      <version>4.0.0</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.plugin</groupId>
       <artifactId>spring-plugin-metadata</artifactId>
-      <version>${spring-plugin.version}</version>
+      <version>3.0.0</version>
     </dependency>
     <dependency>
       <groupId>org.comixedproject</groupId>
       <artifactId>comixed-model</artifactId>
-      <version>3.0-SNAPSHOT</version>
+      <version>3.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.comixedproject</groupId>
       <artifactId>comixed-repositories</artifactId>
-      <version>3.0-SNAPSHOT</version>
+      <version>3.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -41,13 +41,13 @@
     <dependency>
       <groupId>com.squareup.okhttp3</groupId>
       <artifactId>okhttp</artifactId>
-      <version>4.12.0</version>
+      <version>5.1.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.squareup.okhttp3</groupId>
       <artifactId>mockwebserver</artifactId>
-      <version>4.12.0</version>
+      <version>5.1.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>

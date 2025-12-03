@@ -83,7 +83,9 @@
   <ng-container matColumnDef="running">
     <mat-header-cell *matHeaderCellDef></mat-header-cell>
     <mat-cell *matCellDef="let entry">
-      <mat-icon *ngIf="entry.item.running">directions_run</mat-icon>
+      @if (entry.item.running) {
+        <mat-icon>directions_run</mat-icon>
+      }
     </mat-cell>
   </ng-container>
 

@@ -19,20 +19,33 @@
 import {
   AfterViewInit,
   Component,
+  inject,
   OnDestroy,
   OnInit,
   ViewChild
 } from '@angular/core';
 import { LoggerService } from '@angular-ru/cdk/logger';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { Store } from '@ngrx/store';
-import { MatTableDataSource } from '@angular/material/table';
+import {
+  MatTableDataSource,
+  MatTable,
+  MatColumnDef,
+  MatHeaderCellDef,
+  MatHeaderCell,
+  MatCellDef,
+  MatCell,
+  MatHeaderRowDef,
+  MatHeaderRow,
+  MatRowDef,
+  MatRow
+} from '@angular/material/table';
 import { selectSeriesDetail } from '@app/collections/selectors/series.selectors';
 import { Issue } from '@app/collections/models/issue';
 import { loadSeriesDetail } from '@app/collections/actions/series.actions';
-import { TranslateService } from '@ngx-translate/core';
-import { MatSort } from '@angular/material/sort';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import { MatSort, MatSortHeader } from '@angular/material/sort';
 import { MatPaginator } from '@angular/material/paginator';
 import { TitleService } from '@app/core/services/title.service';
 import { QueryParameterService } from '@app/core/services/query-parameter.service';
@@ -43,11 +56,40 @@ import {
   selectComicList
 } from '@app/comic-books/selectors/comic-list.selectors';
 import { DisplayableComic } from '@app/comic-books/models/displayable-comic';
+import { MatFabButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
+import { AsyncPipe, DecimalPipe, DatePipe } from '@angular/common';
+import { SeriesDetailNamePipe } from '../../pipes/series-detail-name.pipe';
 
 @Component({
   selector: 'cx-series-metadata-page',
   templateUrl: './series-metadata-page.component.html',
-  styleUrls: ['./series-metadata-page.component.scss']
+  styleUrls: ['./series-metadata-page.component.scss'],
+  imports: [
+    MatFabButton,
+    MatTooltip,
+    RouterLink,
+    MatIcon,
+    MatPaginator,
+    MatTable,
+    MatSort,
+    MatColumnDef,
+    MatHeaderCellDef,
+    MatHeaderCell,
+    MatCellDef,
+    MatCell,
+    MatSortHeader,
+    MatHeaderRowDef,
+    MatHeaderRow,
+    MatRowDef,
+    MatRow,
+    AsyncPipe,
+    DecimalPipe,
+    DatePipe,
+    TranslateModule,
+    SeriesDetailNamePipe
+  ]
 })
 export class SeriesMetadataPageComponent
   implements OnInit, OnDestroy, AfterViewInit
@@ -85,14 +127,14 @@ export class SeriesMetadataPageComponent
   inLibrary = 0;
   totalIssues = 0;
 
-  constructor(
-    private logger: LoggerService,
-    private activatedRoute: ActivatedRoute,
-    private store: Store<any>,
-    private titleService: TitleService,
-    private translateService: TranslateService,
-    public queryParameterService: QueryParameterService
-  ) {
+  logger = inject(LoggerService);
+  activatedRoute = inject(ActivatedRoute);
+  store = inject(Store);
+  titleService = inject(TitleService);
+  translateService = inject(TranslateService);
+  queryParameterService = inject(QueryParameterService);
+
+  constructor() {
     this.logger.trace('Subscribing to parameter updates');
     this.paramSubscription = this.activatedRoute.params.subscribe(params => {
       this.publisher = params['publisher'];

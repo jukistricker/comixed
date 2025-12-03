@@ -19,17 +19,30 @@
 import {
   AfterViewInit,
   Component,
+  inject,
   OnDestroy,
   OnInit,
   ViewChild
 } from '@angular/core';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import { Store } from '@ngrx/store';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { TitleService } from '@app/core/services/title.service';
 import { Subscription } from 'rxjs';
-import { MatTableDataSource } from '@angular/material/table';
-import { MatSort } from '@angular/material/sort';
+import {
+  MatTableDataSource,
+  MatTable,
+  MatColumnDef,
+  MatHeaderCellDef,
+  MatHeaderCell,
+  MatCellDef,
+  MatCell,
+  MatHeaderRowDef,
+  MatHeaderRow,
+  MatRowDef,
+  MatRow
+} from '@angular/material/table';
+import { MatSort, MatSortHeader } from '@angular/material/sort';
 import { MatPaginator } from '@angular/material/paginator';
 import { ActivatedRoute } from '@angular/router';
 import { QueryParameterService } from '@app/core/services/query-parameter.service';
@@ -43,11 +56,33 @@ import { loadDeletedPages } from '@app/comic-pages/actions/deleted-pages.actions
 import { ComicDetail } from '@app/comic-books/models/comic-detail';
 import { ComicDetailListDialogComponent } from '@app/library/components/comic-detail-list-dialog/comic-detail-list-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
+import { MatToolbar } from '@angular/material/toolbar';
+import { AsyncPipe } from '@angular/common';
+import { PageHashUrlPipe } from '../../../comic-books/pipes/page-hash-url.pipe';
 
 @Component({
   selector: 'cx-deleted-page-list-page',
   templateUrl: './deleted-page-list-page.component.html',
-  styleUrls: ['./deleted-page-list-page.component.scss']
+  styleUrls: ['./deleted-page-list-page.component.scss'],
+  imports: [
+    MatToolbar,
+    MatPaginator,
+    MatTable,
+    MatSort,
+    MatColumnDef,
+    MatHeaderCellDef,
+    MatHeaderCell,
+    MatCellDef,
+    MatCell,
+    MatSortHeader,
+    MatHeaderRowDef,
+    MatHeaderRow,
+    MatRowDef,
+    MatRow,
+    AsyncPipe,
+    TranslateModule,
+    PageHashUrlPipe
+  ]
 })
 export class DeletedPageListPageComponent
   implements OnInit, OnDestroy, AfterViewInit
@@ -62,15 +97,15 @@ export class DeletedPageListPageComponent
   deletedPageListSubscription: Subscription;
   dataSource = new MatTableDataSource<DeletedPage>([]);
 
-  constructor(
-    private logger: LoggerService,
-    private store: Store<any>,
-    private translationService: TranslateService,
-    private titleService: TitleService,
-    private activatedRoute: ActivatedRoute,
-    public queryParameterService: QueryParameterService,
-    private dialog: MatDialog
-  ) {
+  logger = inject(LoggerService);
+  store = inject(Store);
+  translationService = inject(TranslateService);
+  titleService = inject(TitleService);
+  activatedRoute = inject(ActivatedRoute);
+  queryParameterService = inject(QueryParameterService);
+  dialog = inject(MatDialog);
+
+  constructor() {
     this.langChangeSubscription =
       this.translationService.onLangChange.subscribe(() =>
         this.loadTranslations()

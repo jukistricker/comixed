@@ -19,18 +19,31 @@
 package org.comixedproject.adaptors.content;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import org.comixedproject.model.archives.ArchiveType;
 import org.comixedproject.model.comicbooks.ComicBook;
 import org.comixedproject.model.comicbooks.ComicDetail;
+import org.comixedproject.model.comicbooks.ComicMetadataSource;
+import org.comixedproject.model.comicpages.ComicPage;
+import org.comixedproject.model.comicpages.ComicPageType;
+import org.comixedproject.model.metadata.MetadataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class ComicInfoXmlFilenameContentAdaptorTest extends BaseContentAdaptorTest {
   private static final String TEST_COMICINFO_FILE_COMPLETE =
       "src/test/resources/ComicInfo-complete.xml";
@@ -47,8 +60,20 @@ class ComicInfoXmlFilenameContentAdaptorTest extends BaseContentAdaptorTest {
   private static final String TEST_DESCRIPTION = "Test summary <em>inner tag</em>";
   private static final String TEST_METADATA_SOURCE_NAME = "ComicVine";
   private static final String TEST_METADATA_REFERENCE_ID = "12971";
+  private static final String TEST_PAGE_FILENAME = "page-%d.png";
+  private static final String TEST_REFERENCE_ID = "43210";
+  private static final Date TEST_LAST_SCRAPED_DATE;
+
+  static {
+    try {
+      TEST_LAST_SCRAPED_DATE = new SimpleDateFormat("yyyy-MM-dd").parse("2025-07-17");
+    } catch (ParseException e) {
+      throw new RuntimeException(e);
+    }
+  }
 
   @InjectMocks ComicInfoXmlFilenameContentAdaptor adaptor;
+  @Mock private MetadataSource metadataSource;
 
   private ComicBook comicBook = new ComicBook();
   private ContentAdaptorRules contentAdaptorRules = new ContentAdaptorRules();
@@ -57,6 +82,14 @@ class ComicInfoXmlFilenameContentAdaptorTest extends BaseContentAdaptorTest {
   void setup() {
     comicBook.setComicDetail(
         new ComicDetail(comicBook, TEST_COMICINFO_FILE_COMPLETE, ArchiveType.CBZ));
+    comicBook.setMetadata(
+        new ComicMetadataSource(
+            comicBook, metadataSource, TEST_REFERENCE_ID, TEST_LAST_SCRAPED_DATE));
+    for (int index = 0; index < 31; index++) {
+      final ComicPage page = mock(ComicPage.class);
+      comicBook.getPages().add(page);
+      Mockito.when(page.getFilename()).thenReturn(String.format(TEST_PAGE_FILENAME, index));
+    }
   }
 
   @Test
@@ -91,10 +124,25 @@ class ComicInfoXmlFilenameContentAdaptorTest extends BaseContentAdaptorTest {
 
     assertEquals(TEST_METADATA_SOURCE_NAME, comicBook.getMetadataSourceName());
     assertEquals(TEST_METADATA_REFERENCE_ID, comicBook.getMetadataReferenceId());
+    assertEquals(TEST_LAST_SCRAPED_DATE, comicBook.getLastScrapedDate());
+
+    for (int index = 0; index < comicBook.getPages().size(); index++) {
+      final ComicPage comicPage = comicBook.getPages().get(index);
+      Mockito.verify(comicPage, Mockito.times(1)).setPageNumber(index);
+      Mockito.verify(comicPage, Mockito.times(1)).setHeight(1966);
+      if (index == 3) {
+        Mockito.verify(comicPage, Mockito.times(1)).setWidth(2560);
+      } else {
+        Mockito.verify(comicPage, Mockito.times(1)).setWidth(1280);
+      }
+      Mockito.verify(comicPage, Mockito.times(1)).setPageType(Mockito.any(ComicPageType.class));
+      Mockito.verify(comicPage, Mockito.times(1)).setHash(Mockito.anyString());
+    }
   }
 
   @Test
   void loadContext_skipMetadata() throws IOException, ContentAdaptorException {
+    comicBook.setMetadata(null);
     contentAdaptorRules.setSkipMetadata(true);
 
     adaptor.loadContent(
@@ -105,6 +153,7 @@ class ComicInfoXmlFilenameContentAdaptorTest extends BaseContentAdaptorTest {
 
     assertTrue(comicBook.getComicDetail().getTags().isEmpty());
 
+    assertNull(comicBook.getMetadata());
     assertNull(comicBook.getComicDetail().getPublisher());
     assertNull(comicBook.getComicDetail().getSeries());
     assertNull(comicBook.getComicDetail().getVolume());

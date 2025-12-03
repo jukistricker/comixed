@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -26,7 +26,7 @@ import { selectUserReadingLists } from '@app/lists/selectors/reading-lists.selec
 import { selectUser } from '@app/user/selectors/user.selectors';
 import { getUserPreference, isAdmin } from '@app/user/user.functions';
 import { TitleService } from '@app/core/services/title.service';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { SHOW_COMIC_COVERS_PREFERENCE } from '@app/library/library.constants';
 import { QueryParameterService } from '@app/core/services/query-parameter.service';
 import { selectComicBookSelectionIds } from '@app/comic-books/selectors/comic-book-selection.selectors';
@@ -45,11 +45,13 @@ import {
   ComicTagType,
   comicTagTypeFromString
 } from '@app/comic-books/models/comic-tag-type';
+import { ComicListViewComponent } from '../../../comic-books/components/comic-list-view/comic-list-view.component';
 
 @Component({
   selector: 'cx-collection-detail',
   templateUrl: './collection-detail.component.html',
-  styleUrls: ['./collection-detail.component.scss']
+  styleUrls: ['./collection-detail.component.scss'],
+  imports: [ComicListViewComponent, TranslateModule]
 })
 export class CollectionDetailComponent implements OnInit, OnDestroy {
   comics: DisplayableComic[] = [];
@@ -76,16 +78,15 @@ export class CollectionDetailComponent implements OnInit, OnDestroy {
   isAdmin = false;
   langChangeSubscription: Subscription;
   showCovers = false;
+  queryParameterService = inject(QueryParameterService);
+  logger = inject(LoggerService);
+  store = inject(Store);
+  activatedRoute = inject(ActivatedRoute);
+  router = inject(Router);
+  translateService = inject(TranslateService);
+  titleService = inject(TitleService);
 
-  constructor(
-    private logger: LoggerService,
-    private store: Store<any>,
-    private activatedRoute: ActivatedRoute,
-    private router: Router,
-    private translateService: TranslateService,
-    private titleService: TitleService,
-    public queryParameterService: QueryParameterService
-  ) {
+  constructor() {
     this.queryParamsSubscription = this.activatedRoute.queryParams.subscribe(
       () => this.doLoadComicDetails()
     );

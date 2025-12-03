@@ -19,6 +19,7 @@
 import {
   AfterViewInit,
   Component,
+  inject,
   OnDestroy,
   OnInit,
   ViewChild
@@ -29,11 +30,29 @@ import { LoggerService } from '@angular-ru/cdk/logger';
 import { Store } from '@ngrx/store';
 import { loadMetadataSources } from '@app/comic-metadata/actions/metadata-source-list.actions';
 import { selectMetadataSourceList } from '@app/comic-metadata/selectors/metadata-source-list.selectors';
-import { MatTableDataSource } from '@angular/material/table';
-import { MatSort } from '@angular/material/sort';
+import {
+  MatTableDataSource,
+  MatTable,
+  MatColumnDef,
+  MatHeaderCellDef,
+  MatHeaderCell,
+  MatCellDef,
+  MatCell,
+  MatHeaderRowDef,
+  MatHeaderRow,
+  MatRowDef,
+  MatRow,
+  MatNoDataRow
+} from '@angular/material/table';
+import { MatSort, MatSortHeader } from '@angular/material/sort';
 import { ConfirmationService } from '@tragically-slick/confirmation';
-import { TranslateService } from '@ngx-translate/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule
+} from '@angular/forms';
 import { saveConfigurationOptions } from '@app/admin/actions/save-configuration-options.actions';
 import {
   METADATA_CACHE_EXPIRATION_DAYS,
@@ -51,11 +70,57 @@ import { MetadataSourceDetailComponent } from '@app/admin/components/metadata-so
 import { MatDialog } from '@angular/material/dialog';
 import { METADATA_SOURCE_TEMPLATE } from '@app/comic-metadata/comic-metadata.constants';
 import { deleteMetadataSource } from '@app/comic-metadata/actions/metadata-source.actions';
+import {
+  MatFabButton,
+  MatButton,
+  MatIconButton
+} from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
+import {
+  MatCard,
+  MatCardTitle,
+  MatCardContent,
+  MatCardActions
+} from '@angular/material/card';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatCheckbox } from '@angular/material/checkbox';
 
 @Component({
   selector: 'cx-metadata-source-list',
   templateUrl: './metadata-source-list.component.html',
-  styleUrls: ['./metadata-source-list.component.scss']
+  styleUrls: ['./metadata-source-list.component.scss'],
+  imports: [
+    MatFabButton,
+    MatTooltip,
+    MatIcon,
+    ReactiveFormsModule,
+    MatCard,
+    MatCardTitle,
+    MatCardContent,
+    MatFormField,
+    MatLabel,
+    MatInput,
+    MatCheckbox,
+    MatCardActions,
+    MatButton,
+    MatTable,
+    MatSort,
+    MatColumnDef,
+    MatHeaderCellDef,
+    MatHeaderCell,
+    MatCellDef,
+    MatCell,
+    MatIconButton,
+    MatSortHeader,
+    MatHeaderRowDef,
+    MatHeaderRow,
+    MatRowDef,
+    MatRow,
+    MatNoDataRow,
+    TranslateModule
+  ]
 })
 export class MetadataSourceListComponent
   implements OnInit, OnDestroy, AfterViewInit
@@ -77,14 +142,14 @@ export class MetadataSourceListComponent
   showConfigPopup = false;
   configurationOptionList: ConfigurationOption[];
 
-  constructor(
-    private logger: LoggerService,
-    private store: Store<any>,
-    private confirmationService: ConfirmationService,
-    private translateService: TranslateService,
-    private formBuilder: FormBuilder,
-    private dialog: MatDialog
-  ) {
+  private logger = inject(LoggerService);
+  private store = inject(Store);
+  private confirmationService = inject(ConfirmationService);
+  private translateService = inject(TranslateService);
+  private formBuilder = inject(FormBuilder);
+  private dialog = inject(MatDialog);
+
+  constructor() {
     this.sourcesSubscription = this.store
       .select(selectMetadataSourceList)
       .subscribe(sources => (this.dataSource.data = sources));

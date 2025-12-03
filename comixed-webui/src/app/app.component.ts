@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, HostBinding, OnInit } from '@angular/core';
+import { Component, HostBinding, inject, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { LoggerLevel, LoggerService } from '@angular-ru/cdk/logger';
 import { selectUser } from '@app/user/selectors/user.selectors';
@@ -50,11 +50,31 @@ import { selectMessagingState } from '@app/messaging/selectors/messaging.selecto
 import { WebSocketService } from '@app/messaging';
 import { AlertService } from '@app/core/services/alert.service';
 import { filter } from 'rxjs/operators';
+import { NavigationBarComponent } from './components/navigation-bar/navigation-bar.component';
+import {
+  MatSidenavContainer,
+  MatSidenav,
+  MatSidenavContent
+} from '@angular/material/sidenav';
+import { SideNavigationComponent } from './components/side-navigation/side-navigation.component';
+import { EditAccountBarComponent } from './user/components/edit-account-bar/edit-account-bar.component';
+import { RouterOutlet } from '@angular/router';
+import { FooterComponent } from './components/footer/footer.component';
 
 @Component({
   selector: 'cx-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
+  imports: [
+    NavigationBarComponent,
+    MatSidenavContainer,
+    MatSidenav,
+    SideNavigationComponent,
+    EditAccountBarComponent,
+    MatSidenavContent,
+    RouterOutlet,
+    FooterComponent
+  ]
 })
 export class AppComponent implements OnInit {
   @HostBinding('class') currentTheme: 'lite-theme' | 'dark-theme' =
@@ -69,13 +89,13 @@ export class AppComponent implements OnInit {
   busyIcon = BusyIcon.DEFAULT;
   appMessagingSubscription: Subscription | null = null;
 
-  constructor(
-    private logger: LoggerService,
-    private translateService: TranslateService,
-    private store: Store<any>,
-    private webSocketService: WebSocketService,
-    private alertService: AlertService
-  ) {
+  logger = inject(LoggerService);
+  translateService = inject(TranslateService);
+  store = inject(Store);
+  webSocketService = inject(WebSocketService);
+  alertService = inject(AlertService);
+
+  constructor() {
     this.logger.level = LoggerLevel.INFO;
     this.translateService.use('en');
     this.logger.trace('Subscribing to user changes');

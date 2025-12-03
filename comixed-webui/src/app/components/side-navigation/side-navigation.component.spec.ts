@@ -47,6 +47,11 @@ import {
   initialState as initialReadComicBooksState,
   READ_COMIC_BOOKS_FEATURE_KEY
 } from '@app/user/reducers/read-comic-books.reducer';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import {
+  COMIC_BOOK_SELECTION_FEATURE_KEY,
+  initialState as initialcomicBookSelectionState
+} from '@app/comic-books/reducers/comic-book-selection.reducer';
 
 describe('SideNavigationComponent', () => {
   const BLOCKED_PAGES_ENABLED_FEATURE_ENABLED = Math.random() > 0.5;
@@ -55,33 +60,33 @@ describe('SideNavigationComponent', () => {
     [USER_FEATURE_KEY]: initialUserState,
     [READ_COMIC_BOOKS_FEATURE_KEY]: initialReadComicBooksState,
     [READING_LISTS_FEATURE_KEY]: initialReadingListsState,
+    [COMIC_BOOK_SELECTION_FEATURE_KEY]: initialcomicBookSelectionState,
     [FEATURE_ENABLED_FEATURE_KEY]: initialFeatureEnabledState
   };
   let component: SideNavigationComponent;
   let fixture: ComponentFixture<SideNavigationComponent>;
   let store: MockStore;
 
-  beforeEach(
-    waitForAsync(() => {
-      TestBed.configureTestingModule({
-        declarations: [SideNavigationComponent],
-        imports: [
-          RouterTestingModule.withRoutes([{ path: '**', redirectTo: '' }]),
-          LoggerModule.forRoot(),
-          TranslateModule.forRoot(),
-          MatListModule,
-          MatIconModule
-        ],
-        providers: [provideMockStore({ initialState })]
-      }).compileComponents();
+  beforeEach(waitForAsync(() => {
+    TestBed.configureTestingModule({
+      imports: [
+        RouterTestingModule.withRoutes([{ path: '**', redirectTo: '' }]),
+        LoggerModule.forRoot(),
+        TranslateModule.forRoot(),
+        MatListModule,
+        MatIconModule,
+        MatFormFieldModule,
+        SideNavigationComponent
+      ],
+      providers: [provideMockStore({ initialState })]
+    }).compileComponents();
 
-      fixture = TestBed.createComponent(SideNavigationComponent);
-      component = fixture.componentInstance;
-      store = TestBed.inject(MockStore);
-      spyOn(store, 'dispatch');
-      fixture.detectChanges();
-    })
-  );
+    fixture = TestBed.createComponent(SideNavigationComponent);
+    component = fixture.componentInstance;
+    store = TestBed.inject(MockStore);
+    spyOn(store, 'dispatch');
+    fixture.detectChanges();
+  }));
 
   it('should create', () => {
     expect(component).toBeTruthy();

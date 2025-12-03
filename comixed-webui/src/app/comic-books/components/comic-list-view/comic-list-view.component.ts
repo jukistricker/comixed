@@ -21,21 +21,35 @@ import {
   Component,
   EventEmitter,
   HostListener,
+  inject,
   Input,
   OnDestroy,
   OnInit,
   Output
 } from '@angular/core';
-import { MatTableDataSource } from '@angular/material/table';
+import {
+  MatCell,
+  MatCellDef,
+  MatColumnDef,
+  MatHeaderCell,
+  MatHeaderCellDef,
+  MatHeaderRow,
+  MatHeaderRowDef,
+  MatNoDataRow,
+  MatRow,
+  MatRowDef,
+  MatTable,
+  MatTableDataSource
+} from '@angular/material/table';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import { QueryParameterService } from '@app/core/services/query-parameter.service';
 import { Store } from '@ngrx/store';
 import { ComicState } from '@app/comic-books/models/comic-state';
 import { SelectableListItem } from '@app/core/models/ui/selectable-list-item';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ReadingList } from '@app/lists/models/reading-list';
 import { ConfirmationService } from '@tragically-slick/confirmation';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import {
   convertSelectedComicBooks,
   convertSingleComicBook
@@ -87,11 +101,62 @@ import {
 import { batchScrapeComicBooks } from '@app/comic-metadata/actions/multi-book-scraping.actions';
 import { DisplayableComic } from '@app/comic-books/models/displayable-comic';
 import { loadReadingLists } from '@app/lists/actions/reading-lists.actions';
+import {
+  MatCard,
+  MatCardContent,
+  MatCardSubtitle,
+  MatCardTitle
+} from '@angular/material/card';
+import { ComicListFilterComponent } from '../comic-list-filter/comic-list-filter.component';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatSort, MatSortHeader } from '@angular/material/sort';
+import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
+import { MatCheckbox } from '@angular/material/checkbox';
+import { MatLabel } from '@angular/material/form-field';
+import { AsyncPipe, DatePipe } from '@angular/common';
+import { ComicCoverUrlPipe } from '@app/comic-books/pipes/comic-cover-url.pipe';
+import { ComicTitlePipe } from '@app/comic-books/pipes/comic-title.pipe';
 
 @Component({
   selector: 'cx-comic-list-view',
   templateUrl: './comic-list-view.component.html',
-  styleUrls: ['./comic-list-view.component.scss']
+  styleUrls: ['./comic-list-view.component.scss'],
+  imports: [
+    MatCard,
+    MatCardTitle,
+    MatCardSubtitle,
+    MatCardContent,
+    ComicListFilterComponent,
+    MatPaginator,
+    MatTable,
+    MatSort,
+    MatColumnDef,
+    MatHeaderCellDef,
+    MatHeaderCell,
+    MatIcon,
+    MatTooltip,
+    MatCellDef,
+    MatCell,
+    MatMenuTrigger,
+    MatCheckbox,
+    MatSortHeader,
+    RouterLink,
+    MatHeaderRowDef,
+    MatHeaderRow,
+    MatRowDef,
+    MatRow,
+    MatNoDataRow,
+    MatMenu,
+    MatMenuItem,
+    MatLabel,
+    AsyncPipe,
+    DatePipe,
+    TranslateModule,
+    ComicCoverUrlPipe,
+    ComicTitlePipe
+  ]
 })
 export class ComicListViewComponent
   implements OnInit, OnDestroy, AfterViewInit
@@ -109,6 +174,7 @@ export class ComicListViewComponent
   @Input() usePopups = true;
   @Input() showAction = true;
   @Input() showSelection = true;
+  @Input() showSelectAll = true;
   @Input() showThumbnail = true;
   @Input() showArchiveType = true;
   @Input() showComicState = true;
@@ -136,16 +202,16 @@ export class ComicListViewComponent
   libraryPluginListSubscription: Subscription;
   libraryPluginlist: LibraryPlugin[] = [];
 
-  constructor(
-    private logger: LoggerService,
-    private store: Store<any>,
-    private router: Router,
-    private activatedRoute: ActivatedRoute,
-    private confirmationService: ConfirmationService,
-    private translateService: TranslateService,
-    private dialog: MatDialog,
-    public queryParameterService: QueryParameterService
-  ) {
+  logger = inject(LoggerService);
+  store = inject(Store);
+  router = inject(Router);
+  activatedRoute = inject(ActivatedRoute);
+  confirmationService = inject(ConfirmationService);
+  translateService = inject(TranslateService);
+  dialog = inject(MatDialog);
+  queryParameterService = inject(QueryParameterService);
+
+  constructor() {
     this.logger.trace('Subscribing to query parameter updates');
     this.queryParamsSubscription = this.activatedRoute.queryParams.subscribe(
       () => this.applyFilters()
@@ -236,6 +302,8 @@ export class ComicListViewComponent
     switch (comicState) {
       case ComicState.ADDED:
         return 'add';
+      case ComicState.DISCOVERED:
+        return 'file_present';
       case ComicState.UNPROCESSED:
         return 'bolt';
       case ComicState.STABLE:

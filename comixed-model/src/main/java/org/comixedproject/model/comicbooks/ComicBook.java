@@ -18,12 +18,7 @@
 
 package org.comixedproject.model.comicbooks;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonView;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import java.util.*;
 import lombok.Getter;
@@ -32,7 +27,6 @@ import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import org.comixedproject.model.archives.ArchiveType;
 import org.comixedproject.model.comicpages.ComicPage;
-import org.comixedproject.model.comicpages.ComicPageState;
 import org.comixedproject.views.View;
 import org.hibernate.annotations.Formula;
 
@@ -182,6 +176,7 @@ public class ComicBook {
 
   @Transient @Getter @Setter private String metadataSourceName;
   @Transient @Getter @Setter private String metadataReferenceId;
+  @Transient @Getter @Setter private Date lastScrapedDate;
 
   public int getIndexFor(ComicPage page) {
     if (this.pages.contains(page)) return this.pages.indexOf(page);
@@ -227,29 +222,18 @@ public class ComicBook {
     return null;
   }
 
-  public void sortPages() {
-    this.pages.sort((ComicPage p1, ComicPage p2) -> p1.getFilename().compareTo(p2.getFilename()));
-    this.updatePageNumbers();
-  }
-
   public void updatePageNumbers() {
+    Collections.sort(
+        this.pages,
+        new Comparator<ComicPage>() {
+          @Override
+          public int compare(final ComicPage o1, final ComicPage o2) {
+            return o1.getPageNumber().compareTo(o2.getPageNumber());
+          }
+        });
     for (int index = 0; index < this.pages.size(); index++) {
       this.pages.get(index).setPageNumber(index);
     }
-  }
-
-  /** Removes pages that are marked for deletion. */
-  public void removeDeletedPages() {
-    List<ComicPage> pages = new ArrayList<>(this.pages);
-    pages.stream()
-        .filter(Objects::nonNull)
-        .forEach(
-            page -> {
-              if (page.getPageState() == ComicPageState.DELETED) {
-                log.trace("Removing page: {}", page.getComicPageId());
-                this.pages.remove(page);
-              }
-            });
   }
 
   @Override

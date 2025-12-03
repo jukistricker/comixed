@@ -16,11 +16,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { LoggerService } from '@angular-ru/cdk/logger';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { TitleService } from '@app/core/services/title.service';
 import {
   selectFilenameScrapingRules,
@@ -34,17 +34,61 @@ import {
   saveFilenameScrapingRules,
   uploadFilenameScrapingRules
 } from '@app/admin/actions/filename-scraping-rules.actions';
-import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
+import {
+  CdkDragDrop,
+  moveItemInArray,
+  CdkDropList,
+  CdkDrag
+} from '@angular/cdk/drag-drop';
 import { EditableListItem } from '@app/core/models/ui/editable-list-item';
-import { MatTableDataSource } from '@angular/material/table';
+import {
+  MatTableDataSource,
+  MatTable,
+  MatColumnDef,
+  MatHeaderCellDef,
+  MatHeaderCell,
+  MatCellDef,
+  MatCell,
+  MatHeaderRowDef,
+  MatHeaderRow,
+  MatRowDef,
+  MatRow
+} from '@angular/material/table';
 import * as _ from 'lodash';
 import { ConfirmationService } from '@tragically-slick/confirmation';
 import { FILENAME_SCRAPING_RULE_TEMPLATE } from '@app/admin/admin.constants';
+import { MatFabButton, MatIconButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
+import { MatFormField, MatPrefix } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
 
 @Component({
   selector: 'cx-scraping-rules-configuration',
   templateUrl: './filename-scraping-rules-configuration.component.html',
-  styleUrls: ['./filename-scraping-rules-configuration.component.scss']
+  styleUrls: ['./filename-scraping-rules-configuration.component.scss'],
+  imports: [
+    MatFabButton,
+    MatTooltip,
+    MatIcon,
+    MatTable,
+    CdkDropList,
+    MatColumnDef,
+    MatHeaderCellDef,
+    MatHeaderCell,
+    MatCellDef,
+    MatCell,
+    MatFormField,
+    MatIconButton,
+    MatPrefix,
+    MatInput,
+    MatHeaderRowDef,
+    MatHeaderRow,
+    MatRowDef,
+    MatRow,
+    CdkDrag,
+    TranslateModule
+  ]
 })
 export class FilenameScrapingRulesConfigurationComponent
   implements OnInit, OnDestroy
@@ -66,13 +110,13 @@ export class FilenameScrapingRulesConfigurationComponent
     'date-format'
   ];
 
-  constructor(
-    private logger: LoggerService,
-    private store: Store<any>,
-    private translateService: TranslateService,
-    private titleService: TitleService,
-    private confirmationService: ConfirmationService
-  ) {
+  logger = inject(LoggerService);
+  store = inject(Store<any>);
+  translateService = inject(TranslateService);
+  titleService = inject(TitleService);
+  confirmationService = inject(ConfirmationService);
+
+  constructor() {
     this.langChangeSubscription = this.translateService.onLangChange.subscribe(
       () => this.loadTranslations()
     );

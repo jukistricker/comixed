@@ -20,10 +20,12 @@ package org.comixedproject.batch.comicbooks.processors;
 
 import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.assertSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.File;
 import org.comixedproject.adaptors.AdaptorException;
 import org.comixedproject.adaptors.comicbooks.ComicBookAdaptor;
+import org.comixedproject.batch.ComicCheckOutManager;
 import org.comixedproject.model.archives.ArchiveType;
 import org.comixedproject.model.comicbooks.ComicBook;
 import org.comixedproject.model.comicbooks.ComicDetail;
@@ -45,6 +47,7 @@ class RecreateComicFileProcessorTest {
   private static final String TEST_PAGE_RENAMING_RULE = "The page renaming rule";
 
   @InjectMocks private RecreateComicFileProcessor processor;
+  @Mock private ComicCheckOutManager comicCheckOutManager;
   @Mock private ConfigurationService configurationService;
   @Mock private ComicBookAdaptor comicBookAdaptor;
   @Mock private File comicFile;
@@ -55,14 +58,62 @@ class RecreateComicFileProcessorTest {
   public void setUp() {
     Mockito.when(comicFile.exists()).thenReturn(true);
     Mockito.when(comicFile.isFile()).thenReturn(true);
+    Mockito.when(comicDetail.isMissing()).thenReturn(false);
     Mockito.when(comicDetail.getFile()).thenReturn(comicFile);
     Mockito.when(comicBook.getComicDetail()).thenReturn(comicDetail);
+    Mockito.when(comicBook.isFileContentsLoaded()).thenReturn(true);
+    Mockito.when(comicBook.isPurging()).thenReturn(false);
+    Mockito.when(comicBook.isBatchMetadataUpdate()).thenReturn(false);
+    Mockito.when(comicBook.isEditDetails()).thenReturn(false);
+    Mockito.when(comicBook.isUpdateMetadata()).thenReturn(false);
     Mockito.when(comicBook.getTargetArchiveType()).thenReturn(TEST_TARGET_ARCHIVE);
     Mockito.when(comicBook.isDeletePages()).thenReturn(false);
     Mockito.when(
             configurationService.getOptionValue(
                 ConfigurationService.CFG_LIBRARY_PAGE_RENAMING_RULE, ""))
         .thenReturn(TEST_PAGE_RENAMING_RULE);
+  }
+
+  @Test
+  void process_missing() throws Exception {
+    Mockito.when(comicDetail.isMissing()).thenReturn(true);
+
+    assertNull(processor.process(comicBook));
+  }
+
+  @Test
+  void process_fileContentsNotLoaded() throws Exception {
+    Mockito.when(comicBook.isFileContentsLoaded()).thenReturn(false);
+
+    assertNull(processor.process(comicBook));
+  }
+
+  @Test
+  void process_isPurging() throws Exception {
+    Mockito.when(comicBook.isPurging()).thenReturn(true);
+
+    assertNull(processor.process(comicBook));
+  }
+
+  @Test
+  void process_isBatchMetadataUpdate() throws Exception {
+    Mockito.when(comicBook.isBatchMetadataUpdate()).thenReturn(true);
+
+    assertNull(processor.process(comicBook));
+  }
+
+  @Test
+  void process_isEditDetails() throws Exception {
+    Mockito.when(comicBook.isEditDetails()).thenReturn(true);
+
+    assertNull(processor.process(comicBook));
+  }
+
+  @Test
+  void process_isUpdateMetadata() throws Exception {
+    Mockito.when(comicBook.isUpdateMetadata()).thenReturn(true);
+
+    assertNull(processor.process(comicBook));
   }
 
   @Test
@@ -93,7 +144,6 @@ class RecreateComicFileProcessorTest {
     assertNotNull(result);
     assertSame(comicBook, result);
 
-    Mockito.verify(comicBook, Mockito.never()).removeDeletedPages();
     Mockito.verify(comicBookAdaptor, Mockito.times(1))
         .save(comicBook, TEST_TARGET_ARCHIVE, false, TEST_PAGE_RENAMING_RULE);
   }
@@ -107,7 +157,6 @@ class RecreateComicFileProcessorTest {
     assertNotNull(result);
     assertSame(comicBook, result);
 
-    Mockito.verify(comicBook, Mockito.never()).removeDeletedPages();
     Mockito.verify(comicBookAdaptor, Mockito.never())
         .save(Mockito.any(), Mockito.any(), Mockito.anyBoolean(), Mockito.anyString());
   }
@@ -121,7 +170,6 @@ class RecreateComicFileProcessorTest {
     assertNotNull(result);
     assertSame(comicBook, result);
 
-    Mockito.verify(comicBook, Mockito.never()).removeDeletedPages();
     Mockito.verify(comicBookAdaptor, Mockito.never())
         .save(Mockito.any(), Mockito.any(), Mockito.anyBoolean(), Mockito.anyString());
   }
@@ -133,7 +181,6 @@ class RecreateComicFileProcessorTest {
     assertNotNull(result);
     assertSame(comicBook, result);
 
-    Mockito.verify(comicBook, Mockito.never()).removeDeletedPages();
     Mockito.verify(comicBookAdaptor, Mockito.times(1))
         .save(comicBook, TEST_TARGET_ARCHIVE, false, TEST_PAGE_RENAMING_RULE);
   }

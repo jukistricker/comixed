@@ -16,9 +16,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses>
  */
 
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
 import { QueryParameterService } from '@app/core/services/query-parameter.service';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { LoggerService } from '@angular-ru/cdk/logger';
 import { ListItem } from '@app/core/models/ui/list-item';
 import { SelectionOption } from '@app/core/models/ui/selection-option';
@@ -34,11 +34,36 @@ import {
   QUERY_PARAM_FILTER_TEXT,
   QUERY_PARAM_PAGE_COUNT
 } from '@app/core';
+import {
+  MatCard,
+  MatCardContent,
+  MatCardActions
+} from '@angular/material/card';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'cx-comic-list-filter',
   templateUrl: './comic-list-filter.component.html',
-  styleUrls: ['./comic-list-filter.component.scss']
+  styleUrls: ['./comic-list-filter.component.scss'],
+  imports: [
+    ReactiveFormsModule,
+    MatCard,
+    MatCardContent,
+    MatFormField,
+    MatInput,
+    MatLabel,
+    MatSelect,
+    MatOption,
+    MatCardActions,
+    MatButton,
+    MatIcon,
+    TranslateModule
+  ]
 })
 export class ComicListFilterComponent {
   @Output() closeFilter = new EventEmitter<void>();
@@ -73,12 +98,12 @@ export class ComicListFilterComponent {
     } as ListItem<string>;
   });
 
-  constructor(
-    private logger: LoggerService,
-    private formBuilder: FormBuilder,
-    private activatedRoute: ActivatedRoute,
-    public queryParameterService: QueryParameterService
-  ) {
+  logger = inject(LoggerService);
+  formBuilder = inject(FormBuilder);
+  activatedRoute = inject(ActivatedRoute);
+  queryParameterService = inject(QueryParameterService);
+
+  constructor() {
     this.logger.trace('Creating the comic list filter form group');
     this.filterForm = this.formBuilder.group({
       filterText: [''],
